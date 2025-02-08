@@ -49,7 +49,10 @@ const Profile = () => {
   };
 
   const handleSignOut = () => {
-    console.log("Signing out...");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    window.location.href = "/login";
   };
 
   return (

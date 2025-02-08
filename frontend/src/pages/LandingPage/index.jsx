@@ -1,5 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const LandingPage = () => {
   return (
@@ -21,13 +22,17 @@ const LandingPage = () => {
           </p>
 
           <div className="flex items-center justify-center space-x-4">
-            <button className="px-8 py-3 rounded-lg bg-blue-500 text-white font-medium hover:opacity-90 transition-opacity hover:cursor-pointer">
-              Solve Problems
-            </button>
+            <Link to="/solve">
+              <button className="px-8 py-3 rounded-lg bg-blue-500 text-white font-medium hover:opacity-90 transition-opacity hover:cursor-pointer">
+                Solve Problems
+              </button>
+            </Link>
 
-            <button className="px-5 py-3 rounded-lg border bg-gray-900 border-slate-700 text-slate-300 font-medium hover:bg-slate-800 hover:cursor-pointer transition-colors">
-              Visualize Algorithms
-            </button>
+            <Link to="/visualize">
+              <button className="px-5 py-3 rounded-lg border bg-gray-900 border-slate-700 text-slate-300 font-medium hover:bg-slate-800 hover:cursor-pointer transition-colors">
+                Visualize Algorithms
+              </button>
+            </Link>
           </div>
         </div>
       </div>
