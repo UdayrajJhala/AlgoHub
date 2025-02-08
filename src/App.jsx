@@ -1,13 +1,30 @@
-import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage";
-const App = () => {
+import Visualize from "./pages/Visualize";
+import Progress from "./pages/Progress";
+import Leaderboard from "./pages/Leaderboard";
+import Profile from "./pages/Profile";
+import LogIn from "./pages/LogIn";
+import SignUp from "./pages/SignUp";
+
+function App() {
   return (
-    <>
+    <Router>
       <Navbar />
-      <LandingPage />
-    </>
+
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/visualize" element={<Visualize />} />
+          <Route path="/solve" element={<Visualize />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/signup" element={<SignUp />} />
+        </Routes>
+    </Router>
   );
-};
+}
 
 export default App;
