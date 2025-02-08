@@ -224,9 +224,9 @@ const Visualize = () => {
 
       {activeTab === "sorting" && (
         <>
-          <div className="flex justify-around max-h-15 mb-8 pr-100 ">
+          <div className="flex justify-between max-h-12 mb-8 pr-120 items-center">
             <select
-              className="px-4 py-2 cursor-pointer bg-blue-500 text-white rounded mr-4 max-w-40"
+              className="px-2 py-2 cursor-pointer bg-blue-500 text-white rounded mr-4 max-w-40"
               value={selectedAlgorithm}
               onChange={(e) => setSelectedAlgorithm(e.target.value)}
             >
@@ -261,8 +261,8 @@ const Visualize = () => {
               Reset Array
             </button>
 
-            <div className="bg-slate-800 p-2 rounded-lg">
-              <span className="block text-slate-300 mb-2">
+            <div className="bg-slate-800 p-2 py-1 rounded-lg flex flex-col items-center">
+              <span className="text-slate-300 text-sm mb-1">
                 Array Size: {arraySize}
               </span>
 
@@ -272,12 +272,12 @@ const Visualize = () => {
                 max="100"
                 value={arraySize}
                 onChange={(e) => setArraySize(Number(e.target.value))}
-                className="mr-4 cursor-pointer"
+                className="cursor-pointer"
               />
             </div>
 
-            <div className="bg-slate-800 p-2 rounded-lg">
-              <span className="block text-slate-300 mb-2">
+            <div className="bg-slate-800 p-2 py-1 rounded-lg flex flex-col items-center">
+              <span className=" text-sm text-slate-300 mb-1">
                 Sorting Speed: {sortingSpeed}ms
               </span>
               <input
@@ -286,12 +286,12 @@ const Visualize = () => {
                 max="200"
                 value={sortingSpeed}
                 onChange={(e) => setSortingSpeed(Number(e.target.value))}
-                className="ml-4 mr-4 cursor-pointer"
+                className="cursor-pointer"
               />
             </div>
           </div>
 
-          <div className="flex items-end justify-center h-96">
+          <div className="flex items-end justify-center h-96 mt-20">
             {array.map((value, idx) => (
               <div
                 key={idx}
