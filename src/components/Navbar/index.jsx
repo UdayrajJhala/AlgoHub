@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Code, Eye, BarChart2, Trophy, Menu, X } from "lucide-react";
 
 const Navbar = () => {
@@ -17,27 +17,33 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link
+            <NavLink
               to="/"
               className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
             >
               AlgoHub
-            </Link>
+            </NavLink>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item, index) => (
-              <Link
+              <NavLink
                 key={index}
                 to={item.path}
-                className="text-slate-300 hover:text-white flex items-center space-x-1 transition-colors"
+                className={({ isActive }) =>
+                  `flex items-center space-x-1 transition-colors ${
+                    isActive
+                      ? "text-blue-500"
+                      : "text-slate-300 hover:text-white"
+                  }`
+                }
               >
                 {item.icon}
                 <span>{item.label}</span>
-              </Link>
+              </NavLink>
             ))}
 
-            <Link
+            <NavLink
               to="/profile"
               className="w-10 h-10 rounded-full overflow-hidden"
             >
@@ -46,11 +52,11 @@ const Navbar = () => {
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
-            </Link>
+            </NavLink>
           </div>
 
           <div className="md:hidden flex items-center space-x-4">
-            <Link
+            <NavLink
               to="/profile"
               className="w-8 h-8 rounded-full overflow-hidden"
             >
@@ -59,7 +65,7 @@ const Navbar = () => {
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
-            </Link>
+            </NavLink>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-slate-300 hover:text-white p-2"
@@ -78,15 +84,21 @@ const Navbar = () => {
         >
           <div className="flex flex-col space-y-4">
             {navItems.map((item, index) => (
-              <Link
+              <NavLink
                 key={index}
                 to={item.path}
-                className="text-slate-300 hover:text-white flex items-center space-x-2 px-2 py-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+                className={({ isActive }) =>
+                  `flex items-center space-x-2 px-2 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "text-blue-500"
+                      : "text-slate-300 hover:text-white"
+                  }`
+                }
                 onClick={() => setIsOpen(false)}
               >
                 {item.icon}
                 <span>{item.label}</span>
-              </Link>
+              </NavLink>
             ))}
           </div>
         </div>

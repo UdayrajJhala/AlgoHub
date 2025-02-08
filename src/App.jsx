@@ -7,6 +7,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
+import Solve from "./pages/Solve";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/visualize" element={<Visualize />} />
-          <Route path="/solve" element={<Visualize />} />
+          <Route path="/solve" element={<Solve />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />

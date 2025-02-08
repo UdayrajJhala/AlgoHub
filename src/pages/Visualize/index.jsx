@@ -7,7 +7,7 @@ const Visualize = () => {
   const [sortingSpeed, setSortingSpeed] = useState(50);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState("bubble");
   const [isSorting, setIsSorting] = useState(false);
-  const sortingRef = useRef(null);
+  const stopSortingRef = useRef(false);
 
   const generateRandomArray = () => {
     const newArray = Array.from(
@@ -29,6 +29,7 @@ const Visualize = () => {
     let arr = [...array];
     for (let i = 0; i < arr.length; i++) {
       for (let j = 0; j < arr.length - i - 1; j++) {
+        if (stopSortingRef.current) return;
         if (arr[j] > arr[j + 1]) {
           [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
           setArray([...arr]);
@@ -43,6 +44,7 @@ const Visualize = () => {
     for (let i = 0; i < arr.length; i++) {
       let minIndex = i;
       for (let j = i + 1; j < arr.length; j++) {
+        if (stopSortingRef.current) return;
         if (arr[j] < arr[minIndex]) {
           minIndex = j;
         }
@@ -59,6 +61,7 @@ const Visualize = () => {
       let key = arr[i];
       let j = i - 1;
       while (j >= 0 && arr[j] > key) {
+        if (stopSortingRef.current) return;
         arr[j + 1] = arr[j];
         j--;
       }
@@ -82,6 +85,7 @@ const Visualize = () => {
         j = 0,
         k = l;
       while (i < n1 && j < n2) {
+        if (stopSortingRef.current) return;
         if (L[i] <= R[j]) {
           arr[k] = L[i];
           i++;
@@ -95,6 +99,7 @@ const Visualize = () => {
       }
 
       while (i < n1) {
+        if (stopSortingRef.current) return;
         arr[k] = L[i];
         i++;
         k++;
@@ -103,6 +108,7 @@ const Visualize = () => {
       }
 
       while (j < n2) {
+        if (stopSortingRef.current) return;
         arr[k] = R[j];
         j++;
         k++;
@@ -128,6 +134,7 @@ const Visualize = () => {
       let pivot = arr[high];
       let i = low - 1;
       for (let j = low; j < high; j++) {
+        if (stopSortingRef.current) return;
         if (arr[j] < pivot) {
           i++;
           [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -155,10 +162,14 @@ const Visualize = () => {
 
   const startSorting = async () => {
     if (isSorting) {
+      stopSortingRef.current = true; 
       setIsSorting(false);
       return;
     }
+
+    stopSortingRef.current = false; 
     setIsSorting(true);
+
     switch (selectedAlgorithm) {
       case "bubble":
         await bubbleSort();
@@ -178,6 +189,7 @@ const Visualize = () => {
       default:
         break;
     }
+
     setIsSorting(false);
   };
 
@@ -189,7 +201,7 @@ const Visualize = () => {
     <div className="min-h-screen bg-slate-900 text-white p-38 pt-20 pb-0">
       <div className="flex space-x-4 mb-8">
         <button
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
             activeTab === "sorting"
               ? "bg-blue-500 text-white"
               : "bg-slate-800 text-slate-300 hover:bg-slate-700"
@@ -199,7 +211,7 @@ const Visualize = () => {
           Sorting
         </button>
         <button
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
             activeTab === "pathfinding"
               ? "bg-blue-500 text-white"
               : "bg-slate-800 text-slate-300 hover:bg-slate-700"
@@ -212,28 +224,38 @@ const Visualize = () => {
 
       {activeTab === "sorting" && (
         <>
-          <div className="flex justify-around max-h-15 mb-8 pr-100">
+          <div className="flex justify-around max-h-15 mb-8 pr-100 ">
             <select
-              className="px-4 py-2 bg-blue-600 rounded mr-4"
+              className="px-4 py-2 cursor-pointer bg-blue-500 text-white rounded mr-4 max-w-40"
               value={selectedAlgorithm}
               onChange={(e) => setSelectedAlgorithm(e.target.value)}
             >
-              <option value="bubble">Bubble Sort</option>
-              <option value="selection">Selection Sort</option>
-              <option value="insertion">Insertion Sort</option>
-              <option value="merge">Merge Sort</option>
-              <option value="quick">Quick Sort</option>
+              <option className="bg-slate-900" value="bubble">
+                Bubble Sort
+              </option>
+              <option className="bg-slate-900" value="selection">
+                Selection Sort
+              </option>
+              <option className="bg-slate-900" value="insertion">
+                Insertion Sort
+              </option>
+              <option className="bg-slate-900" value="merge">
+                Merge Sort
+              </option>
+              <option className="bg-slate-900" value="quick">
+                Quick Sort
+              </option>
             </select>
 
             <button
-              className="px-4 py-2 bg-green-600 rounded"
+              className="px-4 py-2 bg-green-600 rounded cursor-pointer"
               onClick={startSorting}
             >
               {isSorting ? "Stop Sorting" : "Start Sorting"}
             </button>
 
             <button
-              className="px-4 py-2 bg-blue-600 rounded mr-4"
+              className="px-4 py-2 bg-blue-500 text-white rounded mr-4 cursor-pointer"
               onClick={resetArray}
             >
               Reset Array
@@ -250,7 +272,7 @@ const Visualize = () => {
                 max="100"
                 value={arraySize}
                 onChange={(e) => setArraySize(Number(e.target.value))}
-                className="mr-4"
+                className="mr-4 cursor-pointer"
               />
             </div>
 
@@ -264,7 +286,7 @@ const Visualize = () => {
                 max="200"
                 value={sortingSpeed}
                 onChange={(e) => setSortingSpeed(Number(e.target.value))}
-                className="ml-4 mr-4"
+                className="ml-4 mr-4 cursor-pointer"
               />
             </div>
           </div>
