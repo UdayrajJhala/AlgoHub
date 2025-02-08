@@ -1,9 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Code, Eye, BarChart2, Trophy, Menu, X } from "lucide-react";
+import { Code, Eye, BarChart2, Trophy, Menu, X, LogIn } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext"; // Adjust the import path as needed
 
 const Navbar = () => {
+  const accessToken = localStorage.getItem("accessToken"); 
+
+  useEffect(() => {
+    const fetchProfilePic = async () => {
+      if (!accessToken) {
+        console.error("No access token found");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/user/profile",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch profile data");
+        }
+
+        const data = await response.json();
+        setImageURL(data.profilePicUrl); // Assuming the response contains { profilePicUrl: "https://..." }
+      } catch (error) {
+        console.error("Error fetching profile picture:", error);
+      }
+    };
+
+    fetchProfilePic();
+  }, [accessToken]);
+
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [imageURL, setImageURL] = useState(null);
 
   const navItems = [
     { icon: <Code size={20} />, label: "Solve", path: "/solve" },
@@ -11,6 +49,65 @@ const Navbar = () => {
     { icon: <BarChart2 size={20} />, label: "Progress", path: "/progress" },
     { icon: <Trophy size={20} />, label: "Leaderboard", path: "/leaderboard" },
   ];
+
+  const renderAuthSection = () => {
+    if (isAuthenticated) {
+      return (
+        <NavLink
+          to="/profile"
+          className="w-10 h-10 rounded-full overflow-hidden"
+        >
+          <img
+            src={imageURL}
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
+        </NavLink>
+      );
+    }
+
+    return (
+      <NavLink
+        to="/login"
+        className={({ isActive }) =>
+          `flex items-center space-x-1 transition-colors ${
+            isActive ? "text-blue-500" : "text-slate-300 hover:text-white"
+          }`
+        }
+      >
+        <LogIn size={20} />
+        <span>Sign In</span>
+      </NavLink>
+    );
+  };
+
+  const renderMobileAuthSection = () => {
+    if (isAuthenticated) {
+      return (
+        <NavLink to="/profile" className="w-8 h-8 rounded-full overflow-hidden">
+          <img
+            src={imageURL}
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
+        </NavLink>
+      );
+    }
+
+    return (
+      <NavLink
+        to="/login"
+        className={({ isActive }) =>
+          `flex items-center space-x-1 transition-colors ${
+            isActive ? "text-blue-500" : "text-slate-300 hover:text-white"
+          }`
+        }
+      >
+        <LogIn size={20} />
+        <span>Sign In</span>
+      </NavLink>
+    );
+  };
 
   return (
     <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 z-50">
@@ -42,30 +139,11 @@ const Navbar = () => {
                 <span>{item.label}</span>
               </NavLink>
             ))}
-
-            <NavLink
-              to="/profile"
-              className="w-10 h-10 rounded-full overflow-hidden"
-            >
-              <img
-                src="/api/placeholder/40/40"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </NavLink>
+            {renderAuthSection()}
           </div>
 
           <div className="md:hidden flex items-center space-x-4">
-            <NavLink
-              to="/profile"
-              className="w-8 h-8 rounded-full overflow-hidden"
-            >
-              <img
-                src="/api/placeholder/32/32"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </NavLink>
+            {renderMobileAuthSection()}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-slate-300 hover:text-white p-2"

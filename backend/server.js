@@ -6,7 +6,6 @@ const cors = require("cors");
 const { Pool } = require("pg");
 require("dotenv").config();
 
-
 const app = express();
 
 // Database setup
@@ -21,7 +20,7 @@ const pool = new Pool({
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -48,6 +47,63 @@ const initDB = async () => {
 
 initDB();
 
+// JWT Helper Functions
+const createTokens = (user) => {
+  const accessToken = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      type: "access",
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      id: user.id,
+      type: "refresh",
+    },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+  
+    console.log("Access Token:", accessToken);
+    console.log("Refresh Token:", refreshToken);
+
+  return { accessToken, refreshToken };
+};
+
+// Middleware to verify access token
+const verifyToken = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Token expired" });
+        }
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
+      if (decoded.type !== "access") {
+        return res.status(401).json({ message: "Invalid token type" });
+      }
+
+      req.user = decoded;
+      next();
+    });
+  } catch (error) {
+    res.status(401).json({ message: "Token verification failed" });
+  }
+};
+
+
+
 // Passport configuration
 passport.use(
   new GoogleStrategy(
@@ -58,7 +114,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Check if user exists
         const existingUser = await pool.query(
           "SELECT * FROM users WHERE google_id = $1",
           [profile.id]
@@ -68,7 +123,6 @@ passport.use(
           return done(null, existingUser.rows[0]);
         }
 
-        // Create new user
         const newUser = await pool.query(
           "INSERT INTO users (google_id, email, name, picture) VALUES ($1, $2, $3, $4) RETURNING *",
           [
@@ -93,60 +147,131 @@ app.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+app.get("/api/image-endpoint", async (req,res)=>{
+
+});
+
 app.get(
   "/api/auth/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
-    const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    try {
+      const tokens = createTokens(req.user);
+      res.redirect(
+        `${
+          process.env.CLIENT_URL || "http://localhost:5173"
+        }/login?accessToken=${tokens.accessToken}&refreshToken=${
+          tokens.refreshToken
+        }`
+      );
+    } catch (error) {
+      res.redirect(
+        `${
+          process.env.CLIENT_URL || "http://localhost:5173"
+        }/login?error=authentication_failed`
+      );
+    }
   }
 );
 
-// Protected route to get user data
-app.get("/api/auth/user", async (req, res) => {
+// Refresh token endpoint
+app.post("/api/auth/refresh", async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ message: "No token provided" });
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await pool.query("SELECT * FROM users WHERE id = $1", [
-      decoded.id,
-    ]);
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      async (err, decoded) => {
+        if (err) {
+          return res.status(401).json({ message: "Invalid refresh token" });
+        }
 
-    if (!user.rows.length) {
-      return res.status(404).json({ message: "User not found" });
-    }
+        if (decoded.type !== "refresh") {
+          return res.status(401).json({ message: "Invalid token type" });
+        }
 
-    res.json(user.rows[0]);
+        // Get user from database
+        const user = await pool.query("SELECT * FROM users WHERE id = $1", [
+          decoded.id,
+        ]);
+        if (!user.rows.length) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Create new tokens
+        const tokens = createTokens(user.rows[0]);
+        res.json(tokens);
+      }
+    );
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(500).json({ message: "Token refresh failed" });
   }
 });
 
-// Verify token route
-app.get("/api/auth/verify", async (req, res) => {
+app.get("/api/user/profile", verifyToken, async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ message: "No token provided" });
+    const userId = req.user.id; 
+
+    const query = "SELECT email, name, picture FROM users WHERE id = $1";
+    const result = await pool.query(query, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = result.rows[0];
+    res.json({
+      email: user.email,
+      name: user.name,
+      profilePicUrl: user.picture,
+    });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Protected route to get user data
+app.get("/api/auth/user", verifyToken, async (req, res) => {
+  try {
     const user = await pool.query("SELECT * FROM users WHERE id = $1", [
-      decoded.id,
+      req.user.id,
     ]);
 
     if (!user.rows.length) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user.rows[0]);
+    const userData = user.rows[0];
+    delete userData.google_id; // Remove sensitive info
+
+    res.json(userData);
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    res.status(500).json({ message: "Failed to fetch user data" });
+  }
+});
+
+// Verify token route (for initial auth check)
+app.get("/api/auth/verify", verifyToken, async (req, res) => {
+  try {
+    const user = await pool.query("SELECT * FROM users WHERE id = $1", [
+      req.user.id,
+    ]);
+
+    if (!user.rows.length) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userData = user.rows[0];
+    delete userData.google_id; // Remove sensitive info
+
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ message: "Verification failed" });
   }
 });
 
