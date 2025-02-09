@@ -13,6 +13,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import LogIn from "./pages/LogIn";
 import Solve from "./pages/Solve";
+import Problem from "./pages/Problem";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -89,18 +90,24 @@ function App() {
       <Router>
         <Navbar />
         <Routes>
-          {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LogIn />} />
           <Route path="/visualize" element={<Visualize />} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
 
-          {/* Protected routes */}
           <Route
             path="/solve"
             element={
               <ProtectedRoute>
                 <Solve />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/solve/:problemid"
+            element={
+              <ProtectedRoute>
+                <Problem />
               </ProtectedRoute>
             }
           />

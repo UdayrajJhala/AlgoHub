@@ -68,9 +68,6 @@ const createTokens = (user) => {
     { expiresIn: "7d" }
   );
 
-  console.log("Access Token:", accessToken);
-  console.log("Refresh Token:", refreshToken);
-
   return { accessToken, refreshToken };
 };
 
