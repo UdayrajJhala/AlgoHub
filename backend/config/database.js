@@ -9,7 +9,7 @@ const pool = new Pool({
   port: process.env.POSTGRES_PORT,
 });
 
-const initDB = async () => {
+async function createUsersTable() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -24,6 +24,47 @@ const initDB = async () => {
   } catch (error) {
     console.error("Error initializing database:", error);
   }
-};
+}
+
+async function createProblemsTable() {
+  const query = `
+    CREATE TABLE IF NOT EXISTS problem (
+      problem_id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL UNIQUE,
+      description TEXT NOT NULL,
+      difficulty VARCHAR(50) CHECK (difficulty IN ('Easy', 'Medium', 'Hard')) NOT NULL,
+      topics TEXT[] NOT NULL,
+      input_format TEXT NOT NULL,
+      output_format TEXT NOT NULL,
+      example_cases JSONB NOT NULL
+    );
+  `;
+  await pool.query(query);
+  console.log("✅ Problem table created (if not exists).");
+}
+
+async function insertProblems() {
+  const query = `
+    INSERT INTO problem (title, description, difficulty, topics, input_format, output_format, example_cases) 
+    VALUES (
+      'Two Sum', 
+      'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+      'Easy', 
+      ARRAY['Array', 'Hash Table'], 
+      'First line: an integer n (size of array)\nSecond line: n space-separated integers\nThird line: an integer target', 
+      'Two space-separated integers representing the indices of the two numbers.', 
+      '[{"input": "4\\n2 7 11 15\\n9", "output": "0 1"}]'
+    ) 
+    ON CONFLICT (title) DO NOTHING;
+  `;
+  await pool.query(query);
+  console.log("✅ Two Sum problem inserted (if not exists).");
+}
+
+async function initDB() {
+  await createUsersTable();
+  await createProblemsTable();
+  await insertProblems();
+}
 
 module.exports = { pool, initDB };
