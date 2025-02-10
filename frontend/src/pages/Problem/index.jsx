@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Editor from "@monaco-editor/react";
 import { Play, Send } from "lucide-react";
+import CodeMirror from "@uiw/react-codemirror";
+import { cpp } from "@codemirror/lang-cpp";
+import { java } from "@codemirror/lang-java";
+import { dracula } from "@uiw/codemirror-theme-dracula";
 
 function Problem() {
   const { id } = useParams();
   const [problemData, setProblemData] = useState(null);
   const [language, setLanguage] = useState("cpp");
   const [editorContent, setEditorContent] = useState("");
-  const [output, setOutput] = useState(""); // Added missing state
+  const [output, setOutput] = useState("");
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     const fetchProblem = async () => {
-      if (!id) return; // Add guard clause for undefined id
+      if (!id) return;
 
       try {
         const response = await fetch(
@@ -37,7 +40,6 @@ function Problem() {
     fetchProblem();
   }, [id, accessToken]);
 
-  // Update editor content when language changes
   useEffect(() => {
     if (problemData) {
       setEditorContent(
@@ -68,7 +70,6 @@ function Problem() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Panel */}
         <div className="space-y-6">
-          {/* Problem Header */}
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">{problemData.title}</h1>
             <div className="flex gap-2 items-center">
@@ -86,7 +87,6 @@ function Problem() {
             </div>
           </div>
 
-          {/* Problem Description */}
           <div className="space-y-4">
             <p className="text-gray-300">{problemData.description}</p>
             <div>
@@ -102,7 +102,6 @@ function Problem() {
               </p>
             </div>
 
-            {/* Examples */}
             <div>
               <h3 className="font-semibold mb-2">Examples:</h3>
               <div className="space-y-4">
@@ -125,7 +124,6 @@ function Problem() {
 
         {/* Right Panel */}
         <div className="space-y-4">
-          {/* Language Selector and Action Buttons */}
           <div className="flex items-center justify-between">
             <select
               value={language}
@@ -154,24 +152,17 @@ function Problem() {
             </div>
           </div>
 
-          {/* Code Editor */}
           <div className="h-[400px] rounded-lg overflow-hidden border border-slate-700">
-            <Editor
-              height="100%"
-              language={language}
+            <CodeMirror
               value={editorContent}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                scrollBeyondLastLine: false,
-                padding: { top: 10 },
-              }}
+              height="400px"
+              theme={dracula}
+              extensions={[language === "cpp" ? cpp() : java()]}
               onChange={(value) => setEditorContent(value)}
+              className="text-base"
             />
           </div>
 
-          {/* Output Window */}
           <div className="bg-slate-800 rounded-lg p-4 h-[200px] overflow-auto border border-slate-700">
             <h3 className="font-semibold mb-2">Output:</h3>
             <pre className="text-gray-300 whitespace-pre-line">{output}</pre>
