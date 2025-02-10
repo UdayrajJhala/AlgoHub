@@ -4,35 +4,28 @@ import { Code, Eye, BarChart2, Trophy, Menu, X, LogIn } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext"; // Adjust the import path as needed
 
 const Navbar = () => {
-  const accessToken = localStorage.getItem("accessToken"); 
+  const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     const fetchProfilePic = async () => {
       if (!accessToken) {
-        console.error("No access token found");
+        console.log("No token");
         return;
       }
 
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/user/profile",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch profile data");
-        }
+        const response = await fetch("http://localhost:5000/api/user/profile", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
 
         const data = await response.json();
-        setImageURL(data.profilePicUrl); // Assuming the response contains { profilePicUrl: "https://..." }
+        console.log("Profile data:", data);
+        console.log("Profile pic URL:", data.profilePicUrl);
+        setImageURL(data.profilePicUrl);
       } catch (error) {
-        console.error("Error fetching profile picture:", error);
+        console.error(error);
       }
     };
 
@@ -61,6 +54,10 @@ const Navbar = () => {
             src={imageURL}
             alt="Profile"
             className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error("Image failed to load:", e.target.src);
+              console.error("Error:", e.target.error);
+            }}
           />
         </NavLink>
       );

@@ -36,7 +36,9 @@ async function createProblemsTable() {
       topics TEXT[] NOT NULL,
       input_format TEXT NOT NULL,
       output_format TEXT NOT NULL,
-      example_cases JSONB NOT NULL
+      example_cases JSONB NOT NULL,
+      cpp_template TEXT NOT NULL,
+      java_template TEXT NOT NULL
     );
   `;
   await pool.query(query);
@@ -45,7 +47,7 @@ async function createProblemsTable() {
 
 async function insertProblems() {
   const query = `
-    INSERT INTO problem (title, description, difficulty, topics, input_format, output_format, example_cases) 
+    INSERT INTO problem (title, description, difficulty, topics, input_format, output_format, example_cases, cpp_template, java_template) 
     VALUES (
       'Two Sum', 
       'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
@@ -53,7 +55,9 @@ async function insertProblems() {
       ARRAY['Array', 'Hash Table'], 
       'First line: an integer n (size of array)\nSecond line: n space-separated integers\nThird line: an integer target', 
       'Two space-separated integers representing the indices of the two numbers.', 
-      '[{"input": "4\\n2 7 11 15\\n9", "output": "0 1"}]'
+      '[{"input": "4\\n2 7 11 15\\n9", "output": "0 1"}]',
+      '#include <vector>\nusing namespace std;\nvector<int> twoSum(vector<int>& nums, int target) {\n  // Your code here\n}',
+      'import java.util.*;\nclass Solution {\n  public int[] twoSum(int[] nums, int target) {\n    // Your code here\n  }\n}'
     ) 
     ON CONFLICT (title) DO NOTHING;
   `;
@@ -61,10 +65,44 @@ async function insertProblems() {
   console.log("✅ Two Sum problem inserted (if not exists).");
 }
 
+async function createTestcasesTable() {
+  const query = `
+    CREATE TABLE IF NOT EXISTS testcase (
+      testcase_id SERIAL PRIMARY KEY,
+      problem_id INT REFERENCES problem(problem_id) ON DELETE CASCADE,
+      input TEXT NOT NULL,
+      output TEXT NOT NULL
+    );
+  `;
+  await pool.query(query);
+  console.log("✅ Testcase table created (if not exists).");
+}
+
+async function insertTestcases() {
+  const query = `
+    INSERT INTO testcase (problem_id, input, output) VALUES
+      (1, '4\n2 7 11 15\n9', '0 1'),
+      (1, '3\n3 2 4\n6', '1 2'),
+      (1, '2\n3 3\n6', '0 1'),
+      (1, '5\n1 5 3 7 9\n8', '0 3'),
+      (1, '6\n2 3 1 6 4 8\n7', '1 3'),
+      (1, '4\n1 2 3 4\n5', '0 3'),
+      (1, '5\n10 20 10 40 50\n30', '0 2'),
+      (1, '6\n1 6 11 14 8 2\n9', '0 4'),
+      (1, '7\n5 2 4 6 3 7 8\n10', '2 3'),
+      (1, '4\n4 3 6 2\n8', '0 2')
+    ON CONFLICT DO NOTHING;
+  `;
+  await pool.query(query);
+  console.log("✅ Testcases inserted (if not exists).");
+}
+
 async function initDB() {
   await createUsersTable();
   await createProblemsTable();
   await insertProblems();
+  await createTestcasesTable();
+  await insertTestcases();
 }
 
 module.exports = { pool, initDB };

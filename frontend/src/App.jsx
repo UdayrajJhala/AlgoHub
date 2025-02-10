@@ -104,7 +104,7 @@ function App() {
             }
           />
           <Route
-            path="/solve/:problemid"
+            path="/solve/:id"
             element={
               <ProtectedRoute>
                 <Problem />
