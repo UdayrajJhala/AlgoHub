@@ -44,7 +44,6 @@ async function createProblemsTable() {
   await pool.query(query);
   console.log("✅ Problem table created (if not exists).");
 }
-
 async function insertProblems() {
   const query = `
     INSERT INTO problem (title, description, difficulty, topics, input_format, output_format, example_cases, cpp_template, java_template) 
@@ -56,14 +55,15 @@ async function insertProblems() {
       'First line: an integer n (size of array)\nSecond line: n space-separated integers\nThird line: an integer target', 
       'Two space-separated integers representing the indices of the two numbers.', 
       '[{"input": "4\\n2 7 11 15\\n9", "output": "0 1"}]',
-      '#include <vector>\nusing namespace std;\nvector<int> twoSum(vector<int>& nums, int target) {\n  // Your code here\n}',
-      'import java.util.*;\nclass Solution {\n  public int[] twoSum(int[] nums, int target) {\n    // Your code here\n  }\n}'
+      '#include <iostream>\n#include <vector>\nusing namespace std;\nvector<int> twoSum(vector<int>& nums, int target) {\n  // Your code here\n}\n\nint main() {\n  int n, target;\n  cin >> n;\n  vector<int> nums(n);\n  for (int i = 0; i < n; i++) cin >> nums[i];\n  cin >> target;\n  vector<int> result = twoSum(nums, target);\n  cout << result[0] << " " << result[1] << endl;\n  return 0;\n}',
+      'import java.util.*;\nclass Main {\n  public static int[] twoSum(int[] nums, int target) {\n    // Your code here\n  }\n  public static void main(String[] args) {\n    Scanner sc = new Scanner(System.in);\n    int n = sc.nextInt();\n    int[] nums = new int[n];\n    for (int i = 0; i < n; i++) nums[i] = sc.nextInt();\n    int target = sc.nextInt();\n    int[] result = twoSum(nums, target);\n    System.out.println(result[0] + " " + result[1]);\n    sc.close();\n  }\n}'
     ) 
     ON CONFLICT (title) DO NOTHING;
   `;
   await pool.query(query);
   console.log("✅ Two Sum problem inserted (if not exists).");
 }
+
 
 async function createTestcasesTable() {
   const query = `

@@ -50,11 +50,41 @@ function Problem() {
     }
   }, [language, problemData]);
 
-  const handleRunCode = () => {
-    setOutput(
-      "Running code...\nThis is a mock output.\nExpected: [0, 1]\nActual: [0, 1]\nTest Case 1: Passed"
-    );
+  const handleRunCode = async () => {
+    setOutput("Running code...");
+
+    try {
+      const response = await fetch("http://localhost:5000/api/problem/run", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          problem_id: id,
+          code: editorContent,
+          language: language === "cpp" ? "cpp" : "java",
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to run code");
+
+      const data = await response.json();
+
+      if (data.correct) {
+        setOutput(`✅ Correct!\n\nOutput:\n${data.output}`);
+      } else if(!data.correct && !data.stderr){
+        setOutput(`❌ Incorrect!\n\nError:\nIncorrect Output`);
+      }
+      else  {
+        setOutput(`❌ Incorrect!\n\nError:\n${data.stderr || "Unknown Error"}`);
+      }
+    } catch (error) {
+      console.error("Error running code:", error);
+      setOutput("Error: Failed to execute code.");
+    }
   };
+
 
   const handleSubmit = () => {
     setOutput(
