@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import logo from "../../assets/logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -133,7 +134,10 @@ const Navbar = () => {
               to="/"
               className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
             >
-              AlgoHub
+              <div className="flex">
+                <img src={logo} alt="" />
+                Algohub
+              </div>
             </NavLink>
           </div>
 
@@ -145,7 +149,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `flex items-center space-x-1 transition-colors ${
                     isActive
-                      ? "text-blue-500"
+                      ? "text-blue-400"
                       : "text-slate-300 hover:text-white"
                   }`
                 }
