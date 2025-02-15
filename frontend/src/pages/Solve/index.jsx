@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle, Circle } from "lucide-react";
 import { Link } from "react-router-dom";
 
-
 const DifficultyBadge = ({ difficulty }) => {
   const colors = {
     Easy: "bg-green-600",
@@ -12,7 +11,7 @@ const DifficultyBadge = ({ difficulty }) => {
 
   return (
     <span
-      className={`${colors[difficulty]} px-2 py-1 rounded-full text-xs font-medium`}
+      className={`${colors[difficulty]} px-2 py-1 rounded-full text-xs font-medium text-white`}
     >
       {difficulty}
     </span>
@@ -21,9 +20,9 @@ const DifficultyBadge = ({ difficulty }) => {
 
 const Solve = () => {
   const [problems, setProblems] = useState([]);
-   const [accessToken, setAccessToken] = useState(
-      localStorage.getItem("accessToken")
-    );
+  const [accessToken, setAccessToken] = useState(
+    localStorage.getItem("accessToken")
+  );
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -32,7 +31,7 @@ const Solve = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, 
+            Authorization: `Bearer ${accessToken}`,
           },
           credentials: "include",
         });
@@ -47,12 +46,9 @@ const Solve = () => {
           throw new Error("Invalid API response format");
         }
 
-        const modifiedData = data.map((problem, index) => ({
+        const modifiedData = data.map((problem) => ({
           ...problem,
-          solved:
-            [true, false, false, true, false, true, false, true, false, true][
-              index
-            ] || false,
+          solved: false, // Simplified the solved status assignment
         }));
 
         setProblems(modifiedData);
@@ -62,7 +58,7 @@ const Solve = () => {
     };
 
     fetchProblems();
-  }, []);
+  }, [accessToken]); // Added accessToken as dependency
 
   return (
     <div className="min-h-screen bg-slate-900 p-8 pt-20">
@@ -70,27 +66,31 @@ const Solve = () => {
         <h1 className="text-3xl font-bold text-white mb-8">Problems</h1>
         <div className="bg-slate-800 rounded-lg overflow-hidden">
           <div className="grid grid-cols-1 divide-y divide-slate-700">
-            {problems.map((question) => (
-              <Link to={`/solve/${question.problem_id}`} key={question.id}>
+            {problems.map((problem) => (
+              <Link
+                to={`/solve/${problem.problem_id}`}
+                key={problem.problem_id || problem.id}
+                className="block"
+              >
                 <div className="p-4 hover:bg-slate-700 transition-colors duration-150">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        {question.solved ? (
+                        {problem.solved ? (
                           <CheckCircle className="text-green-500 w-5 h-5" />
                         ) : (
                           <Circle className="text-slate-400 w-5 h-5" />
                         )}
                         <h3 className="text-lg font-medium text-white">
-                          {question.title}
+                          {problem.title}
                         </h3>
                       </div>
                       <div className="mt-2 flex items-center gap-4">
-                        <DifficultyBadge difficulty={question.difficulty} />
+                        <DifficultyBadge difficulty={problem.difficulty} />
                         <div className="flex flex-wrap gap-2">
-                          {question.topics.map((topic, index) => (
+                          {problem.topics?.map((topic) => (
                             <span
-                              key={index}
+                              key={`${problem.problem_id}-${topic}`}
                               className="text-xs bg-slate-600 text-slate-200 px-2 py-1 rounded"
                             >
                               {topic}

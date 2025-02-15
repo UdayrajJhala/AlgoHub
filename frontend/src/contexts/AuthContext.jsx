@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   const refreshAccessToken = async () => {
     try {
@@ -25,7 +26,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Token refresh failed");
       }
 
-      const { accessToken, refreshToken: newRefreshToken } = await response.json();
+      const { accessToken, refreshToken: newRefreshToken } =
+        await response.json();
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", newRefreshToken);
 
@@ -39,9 +41,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchWithToken = async (url, options = {}) => {
-    try {
-      let accessToken = localStorage.getItem("accessToken");
+    let accessToken = localStorage.getItem("accessToken");
 
+    // Don't attempt the fetch if we don't have a token
+    if (!accessToken && !initialized) {
+      throw new Error("Auth not initialized");
+    }
+
+    try {
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -53,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 401) {
         // Token expired, try to refresh
         accessToken = await refreshAccessToken();
-        
+
         // Retry the original request with new token
         return fetch(url, {
           ...options,
@@ -71,9 +78,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkAuthStatus = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // Skip the check if we don't have any tokens
+    if (!accessToken && !refreshToken) {
+      setLoading(false);
+      setInitialized(true);
+      return;
+    }
+
     try {
-      const response = await fetchWithToken("http://localhost:5000/api/auth/user");
-      
+      const response = await fetchWithToken(
+        "http://localhost:5000/api/auth/user"
+      );
+
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
@@ -85,17 +104,24 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     } finally {
       setLoading(false);
+      setInitialized(true);
     }
   };
 
   useEffect(() => {
-    checkAuthStatus();
+    // Add a small delay to ensure localStorage is populated
+    const timer = setTimeout(() => {
+      checkAuthStatus();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const login = async (accessToken, refreshToken, userData) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
     setUser(userData);
+    setInitialized(true);
   };
 
   const logout = () => {
@@ -110,7 +136,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated: !!user,
-    fetchWithToken, // Expose the token-aware fetch function
+    fetchWithToken,
   };
 
   return (

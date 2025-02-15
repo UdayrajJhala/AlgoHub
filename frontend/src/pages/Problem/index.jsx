@@ -74,7 +74,7 @@ function Problem() {
       if (data.correct) {
         setOutput(`✅ Correct!\n\nOutput:\n${data.output}`);
       } else if(!data.correct && !data.stderr){
-        setOutput(`❌ Incorrect!\n\nError:\nIncorrect Output`);
+        setOutput(`❌ Incorrect!\n\nError:\nIncorrect Output:\n${data.output}`);
       }
       else  {
         setOutput(`❌ Incorrect!\n\nError:\n${data.stderr || "Unknown Error"}`);
@@ -158,7 +158,7 @@ function Problem() {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-slate-800 text-gray-100 px-3 py-2 rounded-md border border-slate-700"
+              className="bg-slate-800 text-gray-100 px-3 py-2 rounded-md border border-slate-700 cursor-pointer"
             >
               <option value="cpp">C++</option>
               <option value="java">Java</option>
@@ -167,14 +167,14 @@ function Problem() {
             <div className="flex gap-2">
               <button
                 onClick={handleRunCode}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md cursor-pointer"
               >
                 <Play size={16} />
                 Run Code
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md"
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md cursor-pointer"
               >
                 <Send size={16} />
                 Submit

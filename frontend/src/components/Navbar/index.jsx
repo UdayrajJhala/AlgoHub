@@ -1,40 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Code, Eye, BarChart2, Trophy, Menu, X, LogIn } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext"; // Adjust the import path as needed
+import {
+  Code,
+  Eye,
+  BarChart2,
+  Trophy,
+  Menu,
+  X,
+  LogIn,
+  User,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Navbar = () => {
-  const accessToken = localStorage.getItem("accessToken");
+  const [isOpen, setIsOpen] = useState(false);
+  const [imageURL, setImageURL] = useState(null);
+  const [imageError, setImageError] = useState(false);
+  const { isAuthenticated, fetchWithToken } = useAuth();
 
   useEffect(() => {
     const fetchProfilePic = async () => {
-      if (!accessToken) {
-        console.log("No token");
+      if (!isAuthenticated) {
         return;
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/user/profile", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const response = await fetchWithToken(
+          "http://localhost:5000/api/user/profile"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch profile");
+        }
 
         const data = await response.json();
-        console.log("Profile data:", data);
-        console.log("Profile pic URL:", data.profilePicUrl);
-        setImageURL(data.profilePicUrl);
+        if (data.profilePicUrl) {
+          // Reset error state when trying to load a new image
+          setImageError(false);
+          setImageURL(data.profilePicUrl);
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Failed to fetch profile:", error);
+        setImageError(true);
       }
     };
 
     fetchProfilePic();
-  }, [accessToken]);
-
-  const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
-  const [imageURL, setImageURL] = useState(null);
+  }, [isAuthenticated, fetchWithToken]);
 
   const navItems = [
     { icon: <Code size={20} />, label: "Solve", path: "/solve" },
@@ -43,22 +55,32 @@ const Navbar = () => {
     { icon: <Trophy size={20} />, label: "Leaderboard", path: "/leaderboard" },
   ];
 
+  const ProfileImage = ({ className = "w-10 h-10" }) => {
+    if (imageError || !imageURL) {
+      return (
+        <div
+          className={`${className} bg-slate-700 rounded-full flex items-center justify-center`}
+        >
+          <User className="text-slate-300" size={24} />
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={imageURL}
+        alt="Profile"
+        className={`${className} rounded-full object-cover`}
+        onError={() => setImageError(true)}
+      />
+    );
+  };
+
   const renderAuthSection = () => {
     if (isAuthenticated) {
       return (
-        <NavLink
-          to="/profile"
-          className="w-10 h-10 rounded-full overflow-hidden"
-        >
-          <img
-            src={imageURL}
-            alt="Profile"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              console.error("Image failed to load:", e.target.src);
-              console.error("Error:", e.target.error);
-            }}
-          />
+        <NavLink to="/profile" className="overflow-hidden">
+          <ProfileImage />
         </NavLink>
       );
     }
@@ -81,12 +103,8 @@ const Navbar = () => {
   const renderMobileAuthSection = () => {
     if (isAuthenticated) {
       return (
-        <NavLink to="/profile" className="w-8 h-8 rounded-full overflow-hidden">
-          <img
-            src={imageURL}
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
+        <NavLink to="/profile" className="overflow-hidden">
+          <ProfileImage className="w-8 h-8" />
         </NavLink>
       );
     }
