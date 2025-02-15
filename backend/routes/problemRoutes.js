@@ -4,6 +4,8 @@ const { pool } = require("../config/database");
 
 const router = express.Router();
 
+const JUDGE0_API_URL = "http://43.204.130.231:2358/submissions";
+
 router.get("/", verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
@@ -74,22 +76,21 @@ router.post("/run", verifyToken, async (req, res) => {
     // Send submission request to Judge0
     console.log("🔹 Sending code to Judge0...");
 
-   const judge0Response = await fetch(
-     "http://43.204.130.231:2358/submissions?base64_encoded=true",
-     {
-       method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-         "X-Auth-Token": "",
-       },
-       body: JSON.stringify({
-         language_id: languageId,
-         source_code: Buffer.from(code).toString("base64"), // Encode code in base64
-         stdin: Buffer.from(input).toString("base64"), // Encode input in base64
-       }),
-     }
-   );
-
+    const judge0Response = await fetch(
+      "http://43.204.130.231:2358/submissions?base64_encoded=true",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Auth-Token": "",
+        },
+        body: JSON.stringify({
+          language_id: languageId,
+          source_code: Buffer.from(code).toString("base64"), // Encode code in base64
+          stdin: Buffer.from(input).toString("base64"), // Encode input in base64
+        }),
+      }
+    );
 
     console.log("✅ Judge0 response received:", judge0Response.status);
 
@@ -108,47 +109,44 @@ router.post("/run", verifyToken, async (req, res) => {
     let result;
     let pollCount = 0;
 
-   do {
-     pollCount++;
-     await new Promise((res) => setTimeout(res, 1000)); // Wait 1 sec before polling
-     const resultResponse = await fetch(
-       `http://43.204.130.231:2358/submissions/${token}?base64_encoded=true`,
-       {
-         method: "GET",
-         headers: {
-           "Content-Type": "application/json",
-           "X-Auth-Token": "",
-         },
-       }
-     );
+    do {
+      pollCount++;
+      await new Promise((res) => setTimeout(res, 1000)); // Wait 1 sec before polling
+      const resultResponse = await fetch(
+        `http://43.204.130.231:2358/submissions/${token}?base64_encoded=true`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Token": "",
+          },
+        }
+      );
 
-     result = await resultResponse.clone().json(); // 🛠️ Clone before reading
-     console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
+      result = await resultResponse.clone().json(); // 🛠️ Clone before reading
+      console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
 
-     
-     // Decode output if it exists
-     if (result.stdout) {
-       actualOutput = Buffer.from(result.stdout, "base64").toString();
-     }
-     if (result.stderr) {
-       actualError = Buffer.from(result.stderr, "base64").toString();
-     }
+      // Decode output if it exists
+      if (result.stdout) {
+        actualOutput = Buffer.from(result.stdout, "base64").toString();
+      }
+      if (result.stderr) {
+        actualError = Buffer.from(result.stderr, "base64").toString();
+      }
 
+      console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
 
-     console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
+      // Check if status exists before accessing description
+      if (!result || !result.status) {
+        console.error("❌ Judge0 response is missing 'status':", result);
+        return res.status(500).json({ error: "Invalid response from Judge0" });
+      }
 
-     // Check if status exists before accessing description
-     if (!result || !result.status) {
-       console.error("❌ Judge0 response is missing 'status':", result);
-       return res.status(500).json({ error: "Invalid response from Judge0" });
-     }
-
-     console.log(
-       `✅ Poll ${pollCount}: Status description -`,
-       result.status.description
-     );
-   } while (result.status.description != "Accepted");
-
+      console.log(
+        `✅ Poll ${pollCount}: Status description -`,
+        result.status.description
+      );
+    } while (result.status.description != "Accepted");
 
     // Match output
     console.log("🔹 Matching output...");
@@ -160,6 +158,7 @@ router.post("/run", verifyToken, async (req, res) => {
     console.log("✅ Result:", { isCorrect });
 
     res.json({
+      input: input,
       correct: isCorrect,
       stderr: actualError,
       time: result.time,
@@ -171,5 +170,7 @@ router.post("/run", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 
 module.exports = router;

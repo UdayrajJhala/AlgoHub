@@ -272,16 +272,38 @@ VALUES
 }
 
 async function createTestcasesTable() {
-  const query = `
-    CREATE TABLE IF NOT EXISTS testcase (
-      testcase_id SERIAL PRIMARY KEY,
-      problem_id INT REFERENCES problem(problem_id) ON DELETE CASCADE,
-      input TEXT NOT NULL,
-      output TEXT NOT NULL
-    );
-  `;
-  await pool.query(query);
-  console.log("✅ Testcase table created (if not exists).");
+  try {
+    // First create the table
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS testcase (
+        testcase_id SERIAL PRIMARY KEY,
+        problem_id INT REFERENCES problem(problem_id) ON DELETE CASCADE,
+        input TEXT NOT NULL,
+        output TEXT NOT NULL
+      );
+    `;
+    await pool.query(createTableQuery);
+
+    // Then add the unique constraint
+    try {
+      const addConstraintQuery = `
+        ALTER TABLE testcase 
+        ADD CONSTRAINT unique_testcase 
+        UNIQUE (problem_id, input, output);
+      `;
+      await pool.query(addConstraintQuery);
+    } catch (constraintError) {
+      // If constraint already exists, that's fine
+      if (!constraintError.message.includes("already exists")) {
+        throw constraintError;
+      }
+    }
+
+    console.log("✅ Testcase table and constraints created (if not exists).");
+  } catch (error) {
+    console.error("Error creating testcases table:", error);
+    throw error;
+  }
 }
 
 async function insertTestcases() {
@@ -486,7 +508,7 @@ async function insertTestcases() {
       (20, '5\ninsert banana\ninsert band\nsearch ban\nstartsWith ban\nsearch band', 'false\ntrue\ntrue'),
       (20, '6\ninsert car\ninsert cat\nsearch cap\nstartsWith ca\nsearch cat\nsearch car', 'false\ntrue\ntrue\ntrue'),
       (20, '4\ninsert mobile\nsearch mob\nstartsWith mob\nsearch mobile', 'false\ntrue\ntrue'),
-      (20, '5\ninsert tree\ninsert trie\nsearch tree\nsearch trie\nstartsWith tr', 'true\ntrue\ntrue') ON CONFLICT DO NOTHING;
+      (20, '5\ninsert tree\ninsert trie\nsearch tree\nsearch trie\nstartsWith tr', 'true\ntrue\ntrue') ON CONFLICT (problem_id, input, output) DO NOTHING;;
   `;
   await pool.query(query);
   console.log("✅ Testcases inserted");

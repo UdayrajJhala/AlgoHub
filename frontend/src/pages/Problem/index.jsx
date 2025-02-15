@@ -72,11 +72,14 @@ function Problem() {
       const data = await response.json();
 
       if (data.correct) {
-        setOutput(`✅ Correct!\n\nOutput:\n${data.output}`);
-      } else if(!data.correct && !data.stderr){
-        setOutput(`❌ Incorrect!\n\nError:\nIncorrect Output:\n${data.output}`);
-      }
-      else  {
+        setOutput(
+          `✅ Correct!\nInput:\n${data.input}\nOutput:\n${data.output}`
+        );
+      } else if (!data.correct && !data.stderr) {
+        setOutput(
+          `❌ Incorrect!\nInput:${data.input}\n\nError:\nIncorrect Output:\n${data.output}`
+        );
+      } else {
         setOutput(`❌ Incorrect!\n\nError:\n${data.stderr || "Unknown Error"}`);
       }
     } catch (error) {
@@ -85,11 +88,59 @@ function Problem() {
     }
   };
 
+  const handleSubmit = async () => {
+    setOutput("Submitting...");
 
-  const handleSubmit = () => {
-    setOutput(
-      "Submitting...\nAll test cases passed!\nRuntime: 4 ms\nMemory: 10.2 MB"
-    );
+    try {
+      const response = await fetch("http://localhost:5000/api/problem/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          problem_id: id,
+          code: editorContent,
+          language: language === "cpp" ? "cpp" : "java",
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to submit code");
+
+      const data = await response.json();
+
+      let correctCount = 0;
+      let incorrectCases = [];
+
+      data.results.forEach((test, index) => {
+        if (test.correct) {
+          correctCount++;
+        } else {
+          incorrectCases.push(
+            `❌ Test Case ${index + 1} Failed!\nInput:\n${
+              test.input
+            }\nExpected Output:\n${test.expectedOutput}\nReceived Output:\n${
+              test.output
+            }`
+          );
+        }
+      });
+
+      if (correctCount === 10) {
+        setOutput(
+          `✅ All 10 test cases passed!\nRuntime: ${data.runtime} ms\nMemory: ${data.memory} MB`
+        );
+      } else {
+        setOutput(
+          `✅ ${correctCount}/10 test cases passed!\n\n${incorrectCases.join(
+            "\n\n"
+          )}`
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting code:", error);
+      setOutput("Error: Failed to submit code.");
+    }
   };
 
   if (!problemData)
