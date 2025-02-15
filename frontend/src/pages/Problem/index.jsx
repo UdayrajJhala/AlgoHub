@@ -89,7 +89,7 @@ function Problem() {
   };
 
   const handleSubmit = async () => {
-    setOutput("Submitting...");
+    setOutput("Submitting code...");
 
     try {
       const response = await fetch("http://localhost:5000/api/problem/submit", {
@@ -109,32 +109,22 @@ function Problem() {
 
       const data = await response.json();
 
-      let correctCount = 0;
-      let incorrectCases = [];
-
-      data.results.forEach((test, index) => {
-        if (test.correct) {
-          correctCount++;
-        } else {
-          incorrectCases.push(
-            `❌ Test Case ${index + 1} Failed!\nInput:\n${
-              test.input
-            }\nExpected Output:\n${test.expectedOutput}\nReceived Output:\n${
-              test.output
-            }`
-          );
-        }
-      });
-
-      if (correctCount === 10) {
+      if (data.passed) {
         setOutput(
-          `✅ All 10 test cases passed!\nRuntime: ${data.runtime} ms\nMemory: ${data.memory} MB`
+          `✅ Submission Successful!\nPassed: ${data.passed}/${data.totalCases}\n`
         );
       } else {
         setOutput(
-          `✅ ${correctCount}/10 test cases passed!\n\n${incorrectCases.join(
-            "\n\n"
-          )}`
+          `❌ Submission Failed!\nPassed: ${data.passed}/${
+            data.totalCases
+          }\nFailed Test Cases:\n${data.failed_cases
+            .map(
+              (test, index) =>
+                `Test ${index + 1}:\nInput: ${test.input}\nExpected: ${
+                  test.expected
+                }\nGot: ${test.output}`
+            )
+            .join("\n\n")}`
         );
       }
     } catch (error) {

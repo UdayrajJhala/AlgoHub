@@ -171,6 +171,154 @@ router.post("/run", verifyToken, async (req, res) => {
   }
 });
 
+router.post("/submit", verifyToken, async (req, res) => {
+  console.log("🔹 Submit route hit");
 
+  try {
+    const { problem_id, code, language } = req.body;
+    console.log("🔹 Request Body:", { problem_id, language });
+
+    // Map language to Judge0 language_id
+    const languageMap = { cpp: 54, java: 62 };
+    const languageId = languageMap[language];
+
+    if (!languageId) {
+      console.error("❌ Unsupported language:", language);
+      return res.status(400).json({ error: "Unsupported language" });
+    }
+
+    console.log("✅ Language mapped:", { language, languageId });
+
+    // Fetch all test cases for the problem
+    console.log("🔹 Fetching test cases for problem ID:", problem_id);
+
+    const testCaseResults = await pool.query(
+      "SELECT input, output FROM testcase WHERE problem_id = $1",
+      [problem_id]
+    );
+
+    console.log("✅ Found", testCaseResults.rows.length, "test cases");
+
+    if (testCaseResults.rows.length === 0) {
+      console.error("❌ No test cases found for problem:", problem_id);
+      return res.status(404).json({ error: "No test cases found" });
+    }
+
+    let passed = 0;
+    let failedCases = [];
+
+    // Run each test case sequentially
+    for (let i = 0; i < testCaseResults.rows.length; i++) {
+      const { input, output: expectedOutput } = testCaseResults.rows[i];
+      console.log(
+        `🔹 Running test case ${i + 1}/${testCaseResults.rows.length}`
+      );
+
+      // Submit to Judge0
+      const judge0Response = await fetch(
+        "http://43.204.130.231:2358/submissions?base64_encoded=true",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Token": "",
+          },
+          body: JSON.stringify({
+            language_id: languageId,
+            source_code: Buffer.from(code).toString("base64"),
+            stdin: Buffer.from(input).toString("base64"),
+          }),
+        }
+      );
+
+      const judge0Data = await judge0Response.json();
+
+      if (!judge0Data.token) {
+        console.error("❌ Failed to get submission token from Judge0");
+        return res
+          .status(500)
+          .json({ error: "Failed to get submission token" });
+      }
+
+      // Poll Judge0 for results
+      const token = judge0Data.token;
+      let result;
+      let pollCount = 0;
+      let actualOutput = "";
+      let actualError = "";
+
+      do {
+        pollCount++;
+        await new Promise((res) => setTimeout(res, 500)); // 1.5 sec delay before polling
+        const resultResponse = await fetch(
+          `http://43.204.130.231:2358/submissions/${token}?base64_encoded=true`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Auth-Token": "",
+            },
+          }
+        );
+
+        result = await resultResponse.json();
+
+        if (result.stdout) {
+          actualOutput = Buffer.from(result.stdout, "base64").toString().trim();
+        }
+        if (result.stderr) {
+          actualError = Buffer.from(result.stderr, "base64").toString().trim();
+        }
+
+        console.log(
+          `✅ Poll ${pollCount}: Status -`,
+          result.status.description
+        );
+      } while (result.status.description !== "Accepted" && pollCount < 10);
+
+      if (pollCount >= 10) {
+        console.error("❌ Timeout while waiting for Judge0 response");
+        return res.status(500).json({ error: "Execution timeout or failure." });
+      }
+
+      // Compare outputs
+      console.log(
+        `🔹 Expected: ${expectedOutput.trim()} | Received: ${actualOutput}`
+      );
+      if (actualOutput === expectedOutput.trim()) {
+        passed++;
+      } else {
+        failedCases.push({
+          testCase: i + 1,
+          expected: expectedOutput,
+          received: actualOutput,
+        });
+      }
+    }
+
+    const totalCases = testCaseResults.rows.length;
+    const allPassed = passed === totalCases;
+
+    console.log(
+      `✅ Submission results: ${passed}/${totalCases} test cases passed`
+    );
+
+    console.log(totalCases);
+    console.log(passed);
+    console.log(allPassed);
+    console.log(failedCases);
+
+    res.json({
+      totalCases,
+      passed,
+      failed: totalCases - passed,
+      success: allPassed,
+      failedCases,
+    });
+  } catch (error) {
+    console.error("❌ Error submitting code:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = router;
