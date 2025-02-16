@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 
 const AuthContext = createContext(null);
 
@@ -6,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const refreshTimeoutRef = useRef(null);
 
   const refreshAccessToken = async () => {
     try {
@@ -31,6 +38,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", newRefreshToken);
 
+      // Schedule the next token refresh
+      scheduleTokenRefresh();
+
       return accessToken;
     } catch (error) {
       localStorage.removeItem("accessToken");
@@ -40,10 +50,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const scheduleTokenRefresh = () => {
+    // Clear any existing refresh timeout
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+
+    // Get the current access token
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return;
+
+    // Decode the token to get its expiration time
+    try {
+      const payload = JSON.parse(atob(accessToken.split(".")[1]));
+      const expiresIn = payload.exp * 1000 - Date.now(); // Convert to milliseconds
+
+      // Refresh 1 minute before expiration
+      const refreshTime = Math.max(0, expiresIn - 60000);
+
+      refreshTimeoutRef.current = setTimeout(() => {
+        refreshAccessToken();
+      }, refreshTime);
+    } catch (error) {
+      console.error("Failed to schedule token refresh:", error);
+    }
+  };
+
   const fetchWithToken = async (url, options = {}) => {
     let accessToken = localStorage.getItem("accessToken");
 
-    // Don't attempt the fetch if we don't have a token
     if (!accessToken && !initialized) {
       throw new Error("Auth not initialized");
     }
@@ -58,10 +93,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.status === 401) {
-        // Token expired, try to refresh
         accessToken = await refreshAccessToken();
-
-        // Retry the original request with new token
         return fetch(url, {
           ...options,
           headers: {
@@ -96,6 +128,8 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        // Schedule token refresh after successful auth check
+        scheduleTokenRefresh();
       } else {
         setUser(null);
       }
@@ -114,7 +148,12 @@ export const AuthProvider = ({ children }) => {
       checkAuthStatus();
     }, 100);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
   }, []);
 
   const login = async (accessToken, refreshToken, userData) => {
@@ -122,9 +161,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("refreshToken", refreshToken);
     setUser(userData);
     setInitialized(true);
+    scheduleTokenRefresh(); // Schedule refresh when logging in
   };
 
   const logout = () => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
@@ -153,3 +196,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthProvider;

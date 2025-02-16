@@ -514,12 +514,29 @@ async function insertTestcases() {
   console.log("✅ Testcases inserted");
 }
 
+async function createProgressTable() {
+  const query = `
+  CREATE TABLE IF NOT EXISTS user_progress (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    total_submissions INT DEFAULT 0,
+    correct_submissions INT DEFAULT 0,
+    accuracy FLOAT DEFAULT 0,
+    problems_solved INT DEFAULT 0,
+    last_submission TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+`;
+  await pool.query(query);
+  console.log("✅ Progress table created");
+}
+
 async function initDB() {
   await createUsersTable();
   await createProblemsTable();
   await insertProblems();
   await createTestcasesTable();
   await insertTestcases();
+  await createProgressTable();
 }
 
 module.exports = { pool, initDB };

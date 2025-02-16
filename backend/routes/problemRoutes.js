@@ -189,7 +189,6 @@ router.post("/submit", verifyToken, async (req, res) => {
 
     console.log("✅ Language mapped:", { language, languageId });
 
-    // Fetch all test cases for the problem
     console.log("🔹 Fetching test cases for problem ID:", problem_id);
 
     const testCaseResults = await pool.query(
