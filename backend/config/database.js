@@ -518,16 +518,30 @@ async function createProgressTable() {
   const query = `
   CREATE TABLE IF NOT EXISTS user_progress (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id INT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     total_submissions INT DEFAULT 0,
     correct_submissions INT DEFAULT 0,
     accuracy FLOAT DEFAULT 0,
-    problems_solved INT DEFAULT 0,
-    last_submission TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+    problems_solved INT DEFAULT 0
+  );
 `;
   await pool.query(query);
   console.log("✅ Progress table created");
+}
+
+async function createSubmissionsTable() {
+  const query = `
+  CREATE TABLE IF NOT EXISTS submissions (
+    submission_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    problem_id INT REFERENCES problem(problem_id) ON DELETE CASCADE,
+    code TEXT NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('Passed', 'Failed')),
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`;
+  await pool.query(query);
+  console.log("✅ Submissions table created");
 }
 
 async function initDB() {
@@ -537,6 +551,7 @@ async function initDB() {
   await createTestcasesTable();
   await insertTestcases();
   await createProgressTable();
+  await createSubmissionsTable();
 }
 
 module.exports = { pool, initDB };

@@ -4,12 +4,10 @@ const { pool } = require("../config/database");
 
 const router = express.Router();
 
-const JUDGE0_API_URL = "http://43.204.130.231:2358/submissions";
-
 router.get("/", verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT problem_id, title, description, difficulty, topics FROM problem"
+      "SELECT * FROM problem"
     );
     res.json(result.rows);
   } catch (error) {
@@ -148,6 +146,7 @@ router.post("/run", verifyToken, async (req, res) => {
       );
     } while (result.status.description != "Accepted");
 
+
     // Match output
     console.log("🔹 Matching output...");
     console.log("🔹 Expected:", output.trim());
@@ -157,11 +156,16 @@ router.post("/run", verifyToken, async (req, res) => {
 
     console.log("✅ Result:", { isCorrect });
 
+    console.log(result.time)
+    console.log(result.memory)
+
+    time=result.time*1000;
+
     res.json({
       input: input,
       correct: isCorrect,
       stderr: actualError,
-      time: result.time,
+      time: time,
       memory: result.memory,
       output: actualOutput,
     });
@@ -176,6 +180,7 @@ router.post("/submit", verifyToken, async (req, res) => {
 
   try {
     const { problem_id, code, language } = req.body;
+    const user_id = req.user.id;
     console.log("🔹 Request Body:", { problem_id, language });
 
     // Map language to Judge0 language_id
@@ -205,6 +210,8 @@ router.post("/submit", verifyToken, async (req, res) => {
 
     let passed = 0;
     let failedCases = [];
+    let averageMemory = 0;
+    let averageTime = 0;
 
     // Run each test case sequentially
     for (let i = 0; i < testCaseResults.rows.length; i++) {
@@ -245,6 +252,7 @@ router.post("/submit", verifyToken, async (req, res) => {
       let pollCount = 0;
       let actualOutput = "";
       let actualError = "";
+    
 
       do {
         pollCount++;
@@ -280,6 +288,8 @@ router.post("/submit", verifyToken, async (req, res) => {
         return res.status(500).json({ error: "Execution timeout or failure." });
       }
 
+
+
       // Compare outputs
       console.log(
         `🔹 Expected: ${expectedOutput.trim()} | Received: ${actualOutput}`
@@ -293,7 +303,15 @@ router.post("/submit", verifyToken, async (req, res) => {
           received: actualOutput,
         });
       }
+      averageMemory += result.memory;
+      averageTime += 1000*(result.time);
     }
+
+    averageMemory/=10;
+    averageTime/=10;
+
+    console.log(averageTime)
+    console.log(averageMemory)
 
     const totalCases = testCaseResults.rows.length;
     const allPassed = passed === totalCases;
@@ -301,6 +319,34 @@ router.post("/submit", verifyToken, async (req, res) => {
     console.log(
       `✅ Submission results: ${passed}/${totalCases} test cases passed`
     );
+
+
+    const status = allPassed ? "Passed" : "Failed";
+
+    await pool.query(
+      "INSERT INTO submissions (user_id, problem_id, code, language, status) VALUES ($1, $2, $3, $4, $5)",
+      [user_id, problem_id, code, language, status]
+    );
+
+    console.log("✅ Submission added to database");
+
+    await pool.query(
+      `INSERT INTO user_progress (user_id, total_submissions, correct_submissions, accuracy, problems_solved)
+    VALUES ($1, 1, $2, CASE WHEN $2 = 1 THEN 100 ELSE 0 END, CASE WHEN $2 = 1 THEN 1 ELSE 0 END)
+    ON CONFLICT (user_id) 
+    DO UPDATE SET 
+    total_submissions = user_progress.total_submissions + 1,
+    correct_submissions = user_progress.correct_submissions + CASE WHEN $2 = 1 THEN 1 ELSE 0 END,
+    accuracy = ((user_progress.correct_submissions + CASE WHEN $2 = 1 THEN 1 ELSE 0 END) * 100.0) / (user_progress.total_submissions + 1),
+    problems_solved = user_progress.problems_solved + CASE 
+      WHEN $2 = 1 AND NOT EXISTS (
+        SELECT 1 FROM submissions WHERE user_id = $1 AND problem_id = $3 AND status = 'Passed'
+      ) THEN 1 ELSE 0 END;`,
+      [user_id, allPassed ? 1 : 0, problem_id]
+    );
+
+    console.log("✅ Progress added to database");
+
 
     console.log(totalCases);
     console.log(passed);
@@ -313,6 +359,8 @@ router.post("/submit", verifyToken, async (req, res) => {
       failed: totalCases - passed,
       success: allPassed,
       failedCases,
+      averageMemory:averageMemory,
+      averageTime:averageTime
     });
   } catch (error) {
     console.error("❌ Error submitting code:", error);

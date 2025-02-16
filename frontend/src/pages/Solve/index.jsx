@@ -20,45 +20,109 @@ const DifficultyBadge = ({ difficulty }) => {
 
 const Solve = () => {
   const [problems, setProblems] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem("accessToken")
   );
 
+  // Fetch submissions
+  const fetchSubmissions = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/progress/submissions", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data || []; // Ensure we return an empty array if data is null/undefined
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      return []; // Return empty array on error
+    }
+
+    
+  };
+
+  // Fetch problems
+  const fetchProblems = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/problem/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid API response format");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching problems:", error);
+      return []; // Return empty array on error
+    }
+    
+  };
+
+  // Update problems with solved status
+  const updateProblemsWithSolvedStatus = (problems = [], submissions = []) => {
+    if (!Array.isArray(problems) || !Array.isArray(submissions)) {
+      return [];
+    }
+
+    return problems.map((problem) => {
+      // Check if any submission for this problem was successful
+      const solved = submissions.some(
+        (submission) =>
+          submission?.problem_id === problem?.problem_id &&
+          submission?.status === "Passed"
+      );
+      return { ...problem, solved };
+    });
+  };
+
+
   useEffect(() => {
-    const fetchProblems = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/problem/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: "include",
-        });
+        // Fetch both problems and submissions
+        const [problemsData, submissionsData] = await Promise.all([
+          fetchProblems(),
+          fetchSubmissions(),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        // Update problems with solved status
+        const updatedProblems = updateProblemsWithSolvedStatus(
+          problemsData,
+          submissionsData
+        );
 
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-          throw new Error("Invalid API response format");
-        }
-
-        const modifiedData = data.map((problem) => ({
-          ...problem,
-          solved: false, // Simplified the solved status assignment
-        }));
-
-        setProblems(modifiedData);
+        setProblems(updatedProblems);
       } catch (error) {
-        console.error("Error fetching problems:", error);
+        console.error("Error loading data:", error);
+        setProblems([]); // Set empty array on error
       }
     };
 
-    fetchProblems();
-  }, [accessToken]); // Added accessToken as dependency
+    loadData();
+  }, [accessToken]);
 
   return (
     <div className="min-h-screen bg-slate-900 p-8 pt-20">
@@ -69,7 +133,7 @@ const Solve = () => {
             {problems.map((problem) => (
               <Link
                 to={`/solve/${problem.problem_id}`}
-                key={problem.problem_id || problem.id}
+                key={problem.problem_id}
                 className="block"
               >
                 <div className="p-4 hover:bg-slate-700 transition-colors duration-150">

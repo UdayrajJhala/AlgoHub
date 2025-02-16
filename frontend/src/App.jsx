@@ -111,14 +111,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/progress"
-            element={
-              <ProtectedRoute>
-                <Progress />
-              </ProtectedRoute>
-            }
-          />
+        
           <Route
             path="/leaderboard"
             element={

@@ -5,6 +5,7 @@ const { initDB } = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const problemRoutes = require("./routes/problemRoutes");
+const progressRoutes = require("./routes/progressRoutes");
 
 require("dotenv").config();
 
@@ -27,6 +28,7 @@ initDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/problem", problemRoutes);
+app.use("/api/progress",progressRoutes);
 
 
 const PORT = process.env.PORT || 5000;

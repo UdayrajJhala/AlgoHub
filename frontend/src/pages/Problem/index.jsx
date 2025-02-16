@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Play, Send } from "lucide-react";
+import { Play, Send, Clock, Cpu } from "lucide-react";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
@@ -12,6 +12,7 @@ function Problem() {
   const [language, setLanguage] = useState("cpp");
   const [editorContent, setEditorContent] = useState("");
   const [output, setOutput] = useState("");
+  const [metrics, setMetrics] = useState(null);
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
@@ -52,6 +53,7 @@ function Problem() {
 
   const handleRunCode = async () => {
     setOutput("Running code...");
+    setMetrics(null);
 
     try {
       const response = await fetch("http://localhost:5000/api/problem/run", {
@@ -70,6 +72,11 @@ function Problem() {
       if (!response.ok) throw new Error("Failed to run code");
 
       const data = await response.json();
+
+      setMetrics({
+        time: data.time,
+        memory: data.memory,
+      });
 
       if (data.correct) {
         setOutput(
@@ -90,6 +97,7 @@ function Problem() {
 
   const handleSubmit = async () => {
     setOutput("Submitting code...");
+    setMetrics(null);
 
     try {
       const response = await fetch("http://localhost:5000/api/problem/submit", {
@@ -108,6 +116,11 @@ function Problem() {
       if (!response.ok) throw new Error("Failed to submit code");
 
       const data = await response.json();
+
+      setMetrics({
+        averageTime: data.averageTime,
+        averageMemory: data.averageMemory,
+      });
 
       if (data.passed) {
         setOutput(
@@ -132,6 +145,8 @@ function Problem() {
       setOutput("Error: Failed to submit code.");
     }
   };
+
+
 
   if (!problemData)
     return <div className="text-center text-gray-300">Loading...</div>;
@@ -233,6 +248,37 @@ function Problem() {
               className="text-base"
             />
           </div>
+
+          {metrics && (
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <div className="grid grid-cols-2 gap-4">
+                {metrics.time !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} className="text-blue-400" />
+                    <span>Time: {`${metrics.time} ms`}</span>
+                  </div>
+                )}
+                {metrics.memory !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Cpu size={16} className="text-green-400" />
+                    <span>Memory: {`${metrics.memory} KB`}</span>
+                  </div>
+                )}
+                {metrics.averageTime !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} className="text-blue-400" />
+                    <span>Avg Time: {`${metrics.averageTime} ms`}</span>
+                  </div>
+                )}
+                {metrics.averageMemory !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Cpu size={16} className="text-green-400" />
+                    <span>Avg Memory: {`${metrics.averageMemory} KB`}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="bg-slate-800 rounded-lg p-4 h-[200px] overflow-auto border border-slate-700">
             <h3 className="font-semibold mb-2">Output:</h3>

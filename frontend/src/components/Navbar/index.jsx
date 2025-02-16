@@ -51,7 +51,6 @@ const Navbar = () => {
   const navItems = [
     { icon: <Code size={20} />, label: "Solve", path: "/solve" },
     { icon: <Eye size={20} />, label: "Visualize", path: "/visualize" },
-    { icon: <BarChart2 size={20} />, label: "Progress", path: "/progress" },
     { icon: <Trophy size={20} />, label: "Leaderboard", path: "/leaderboard" },
   ];
 
