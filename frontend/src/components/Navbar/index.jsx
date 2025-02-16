@@ -36,7 +36,6 @@ const Navbar = () => {
 
         const data = await response.json();
         if (data.profilePicUrl) {
-          // Reset error state when trying to load a new image
           setImageError(false);
           setImageURL(data.profilePicUrl);
         }
