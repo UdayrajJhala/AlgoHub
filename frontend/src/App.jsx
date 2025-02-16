@@ -8,7 +8,6 @@ import { useAuth, AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage";
 import Visualize from "./pages/Visualize";
-import Progress from "./pages/Progress";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import LogIn from "./pages/LogIn";
