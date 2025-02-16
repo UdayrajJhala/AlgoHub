@@ -125,7 +125,6 @@ const Profile = () => {
         const data = await response.json();
 
         setSubmissions(data);
-        console.log(data);
       } catch (error) {
         console.error("Error fetching submissions:", error);
       }

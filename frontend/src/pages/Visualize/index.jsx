@@ -4,10 +4,23 @@ const Visualize = () => {
   const [activeTab, setActiveTab] = useState("sorting");
   const [array, setArray] = useState([]);
   const [arraySize, setArraySize] = useState(20);
-  const [sortingSpeed, setSortingSpeed] = useState(50);
+  const [sortingSpeed, setSortingSpeed] = useState(50); // Now represents speed, not delay
   const [selectedAlgorithm, setSelectedAlgorithm] = useState("bubble");
   const [isSorting, setIsSorting] = useState(false);
   const stopSortingRef = useRef(false);
+
+  // Convert speed to delay (inverse relationship)
+  const getDelay = () => {
+    const MAX_SPEED = 200;
+    const MIN_DELAY = 10;
+    const MAX_DELAY = 200;
+    // Invert the speed value to get delay
+    return (
+      MAX_DELAY -
+      ((sortingSpeed - MIN_DELAY) * (MAX_DELAY - MIN_DELAY)) /
+        (MAX_SPEED - MIN_DELAY)
+    );
+  };
 
   const generateRandomArray = () => {
     const newArray = Array.from(
@@ -22,7 +35,7 @@ const Visualize = () => {
   };
 
   const sleep = (ms) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, getDelay()));
   };
 
   const bubbleSort = async () => {
@@ -162,12 +175,12 @@ const Visualize = () => {
 
   const startSorting = async () => {
     if (isSorting) {
-      stopSortingRef.current = true; 
+      stopSortingRef.current = true;
       setIsSorting(false);
       return;
     }
 
-    stopSortingRef.current = false; 
+    stopSortingRef.current = false;
     setIsSorting(true);
 
     switch (selectedAlgorithm) {
@@ -277,8 +290,8 @@ const Visualize = () => {
             </div>
 
             <div className="bg-slate-800 p-2 py-1 rounded-lg flex flex-col items-center">
-              <span className=" text-sm text-slate-300 mb-1">
-                Sorting Speed: {sortingSpeed}ms
+              <span className="text-sm text-slate-300 mb-1">
+                Speed: {Math.round((sortingSpeed / 200) * 100)}%
               </span>
               <input
                 type="range"
