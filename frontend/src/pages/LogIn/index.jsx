@@ -32,11 +32,14 @@ const Login = () => {
   const handleAuthSuccess = async (accessToken, refreshToken) => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/auth/user", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const userData = await response.json();
