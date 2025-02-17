@@ -12,6 +12,9 @@ require("dotenv").config();
 
 const app = express();
 
+const backendurl = process.env.BACKEND_URL;
+
+
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -35,7 +38,7 @@ app.get("/ping", (req, res) => {
 const pingServer = () => {
   setInterval(() => {
     axios
-      .get(`https://algohub-cjro.onrender.com/ping`)
+      .get(`${backendurl}/ping`)
       .then((response) => {
         console.log("Pinged the server successfully:", response.data);
       })
