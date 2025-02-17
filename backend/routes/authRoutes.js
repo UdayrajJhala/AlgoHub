@@ -18,6 +18,10 @@ router.get(
   (req, res) => {
     try {
       const tokens = createTokens(req.user);
+      console.log(
+        `Redirecting to: ${process.env.CLIENT_URL}/login?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
+      );
+
       res.redirect(
         `${process.env.CLIENT_URL}/login?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
       );
