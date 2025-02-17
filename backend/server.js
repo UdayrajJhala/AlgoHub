@@ -35,7 +35,7 @@ app.get("/ping", (req, res) => {
 const pingServer = () => {
   setInterval(() => {
     axios
-      .get(`http://localhost:${process.env.PORT || 5000}/ping`)
+      .get(`https://algohub-cjro.onrender.com/ping`)
       .then((response) => {
         console.log("Pinged the server successfully:", response.data);
       })
