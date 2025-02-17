@@ -4,7 +4,6 @@ import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
-  //
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -17,52 +16,53 @@ const Login = () => {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get("accessToken");
-    const refreshToken = params.get("refreshToken");
-    const error = params.get("error");
+    const handleAuthCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const accessToken = params.get("accessToken");
+      const refreshToken = params.get("refreshToken");
+      const error = params.get("error");
 
-    if (accessToken && refreshToken) {
-      handleAuthSuccess(accessToken, refreshToken);
-    } else if (error) {
-      setError(error);
-      console.error("Authentication error:", error);
-    }
-  }, []);
+      if (accessToken && refreshToken) {
+        try {
+          setLoading(true);
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
-  const handleAuthSuccess = async (accessToken, refreshToken) => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const userData = await response.json();
+          await login(accessToken, refreshToken, userData);
+
+          // Clean up URL parameters
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+          navigate("/dashboard");
+        } catch (error) {
+          console.error("Error during authentication:", error);
+          setError("Authentication failed. Please try again.");
+        } finally {
+          setLoading(false);
         }
-      );
-
-      if (response.ok) {
-        const userData = await response.json();
-        await login(accessToken, refreshToken, userData);
-
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-
-        navigate("/dashboard");
-      } else {
-        throw new Error("Failed to fetch user data");
+      } else if (error) {
+        setError(error);
+        console.error("Authentication error:", error);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      setError("Failed to complete login. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    handleAuthCallback();
+  }, []);
 
   if (loading) {
     return (
