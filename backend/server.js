@@ -14,10 +14,9 @@ const app = express();
 
 const backendurl = process.env.BACKEND_URL;
 
-
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -45,10 +44,10 @@ const pingServer = () => {
       .catch((error) => {
         console.error("Error pinging the server:", error);
       });
-  }, 600000); 
+  }, 600000);
 };
 
-pingServer(); 
+pingServer();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
