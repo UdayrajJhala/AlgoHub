@@ -46,11 +46,14 @@ const OAuthCallback = () => {
 
       if (token) {
         try {
-          const response = await fetch("http://localhost:5000/api/auth/user", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const userData = await response.json();
