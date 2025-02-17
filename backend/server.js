@@ -11,7 +11,6 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -21,10 +20,8 @@ app.use(
 app.use(express.json());
 app.use(passport.initialize());
 
-// Initialize database
 initDB();
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/problem", problemRoutes);

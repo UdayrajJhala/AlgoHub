@@ -25,43 +25,47 @@ const Solve = () => {
     localStorage.getItem("accessToken")
   );
 
-  // Fetch submissions
   const fetchSubmissions = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/progress/submissions", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/progress/submissions`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
-      return data || []; // Ensure we return an empty array if data is null/undefined
+      return data || []; 
     } catch (error) {
       console.error("Error fetching submissions:", error);
-      return []; // Return empty array on error
+      return []; 
     }
 
     
   };
 
-  // Fetch problems
   const fetchProblems = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/problem/", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/problem/`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -76,19 +80,17 @@ const Solve = () => {
       return data;
     } catch (error) {
       console.error("Error fetching problems:", error);
-      return []; // Return empty array on error
+      return [];
     }
     
   };
 
-  // Update problems with solved status
   const updateProblemsWithSolvedStatus = (problems = [], submissions = []) => {
     if (!Array.isArray(problems) || !Array.isArray(submissions)) {
       return [];
     }
 
     return problems.map((problem) => {
-      // Check if any submission for this problem was successful
       const solved = submissions.some(
         (submission) =>
           submission?.problem_id === problem?.problem_id &&
@@ -102,13 +104,11 @@ const Solve = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch both problems and submissions
         const [problemsData, submissionsData] = await Promise.all([
           fetchProblems(),
           fetchSubmissions(),
         ]);
 
-        // Update problems with solved status
         const updatedProblems = updateProblemsWithSolvedStatus(
           problemsData,
           submissionsData
@@ -117,7 +117,7 @@ const Solve = () => {
         setProblems(updatedProblems);
       } catch (error) {
         console.error("Error loading data:", error);
-        setProblems([]); // Set empty array on error
+        setProblems([]); 
       }
     };
 

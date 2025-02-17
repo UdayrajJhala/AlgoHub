@@ -1,20 +1,19 @@
 import React, { useState, useRef } from "react";
+import GraphVisualization from "./GraphVisualization";
 
 const Visualize = () => {
   const [activeTab, setActiveTab] = useState("sorting");
   const [array, setArray] = useState([]);
   const [arraySize, setArraySize] = useState(20);
-  const [sortingSpeed, setSortingSpeed] = useState(50); // Now represents speed, not delay
+  const [sortingSpeed, setSortingSpeed] = useState(50);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState("bubble");
   const [isSorting, setIsSorting] = useState(false);
   const stopSortingRef = useRef(false);
 
-  // Convert speed to delay (inverse relationship)
   const getDelay = () => {
     const MAX_SPEED = 200;
     const MIN_DELAY = 10;
     const MAX_DELAY = 200;
-    // Invert the speed value to get delay
     return (
       MAX_DELAY -
       ((sortingSpeed - MIN_DELAY) * (MAX_DELAY - MIN_DELAY)) /
@@ -225,19 +224,19 @@ const Visualize = () => {
         </button>
         <button
           className={`px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
-            activeTab === "pathfinding"
+            activeTab === "graph"
               ? "bg-blue-500 text-white"
               : "bg-slate-800 text-slate-300 hover:bg-slate-700"
           }`}
-          onClick={() => setActiveTab("pathfinding")}
+          onClick={() => setActiveTab("graph")}
         >
-          Pathfinding
+          Graph
         </button>
       </div>
 
       {activeTab === "sorting" && (
         <>
-          <div className="flex justify-between max-h-12 mb-8 pr-120 items-center">
+          <div className="flex space-x-4 max-h-12 mb-8 items-center">
             <select
               className="px-2 py-2 cursor-pointer bg-blue-500 text-white rounded mr-4 max-w-40"
               value={selectedAlgorithm}
@@ -314,6 +313,10 @@ const Visualize = () => {
             ))}
           </div>
         </>
+      )}
+
+      {activeTab=="graph"&&(
+        <GraphVisualization/>
       )}
     </div>
   );

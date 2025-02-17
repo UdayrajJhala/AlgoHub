@@ -42,13 +42,16 @@ const Profile = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/user/profile", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/user/profile`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch profile data");
@@ -75,7 +78,7 @@ const Profile = () => {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/progress/data",
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/data`,
           {
             method: "GET",
             headers: {
@@ -109,7 +112,7 @@ const Profile = () => {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/progress/submissions",
+          `${import.meta.env.VITE_BACKEND_URL}/api/progress/submissions`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -163,7 +166,7 @@ const Profile = () => {
   };
 
   const getStatusColor = (status) => {
-    if (!status) return "text-gray-500"; // Handle undefined/null cases
+    if (!status) return "text-gray-500";
 
     const lowerCaseStatus = status.toLowerCase();
 
@@ -171,7 +174,7 @@ const Profile = () => {
     if (lowerCaseStatus.includes("failed")) return "text-red-500";
     if (lowerCaseStatus.includes("time limit")) return "text-yellow-500";
 
-    return "text-gray-500"; // Default case
+    return "text-gray-500"; 
   };
 
   const formatLanguage = (language) => {
@@ -182,7 +185,7 @@ const Profile = () => {
     try {
       await navigator.clipboard.writeText(selectedCode);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy code:", err);
     }
@@ -232,7 +235,7 @@ const Profile = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-gray-900">
+              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-slate-950">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-blue-500 mb-2">
                   <Code2 size={20} />
                   <span className="font-semibold">Problems Solved</span>
@@ -241,7 +244,7 @@ const Profile = () => {
                   {userStats.problems_solved}
                 </p>
               </div>
-              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-gray-900">
+              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-slate-950">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-blue-500 mb-2">
                   <Code2 size={20} />
                   <span className="font-semibold">Total Submissions</span>
@@ -250,7 +253,7 @@ const Profile = () => {
                   {userStats.total_submissions}
                 </p>
               </div>
-              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-gray-900">
+              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-slate-950">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-blue-500 mb-2">
                   <Code2 size={20} />
                   <span className="font-semibold">Correct Submissions</span>
@@ -260,7 +263,7 @@ const Profile = () => {
                 </p>
               </div>
 
-              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-gray-900">
+              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-slate-950">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-blue-500 mb-2">
                   <Target size={20} />
                   <span className="font-semibold">Accuracy</span>
@@ -270,7 +273,7 @@ const Profile = () => {
                 </p>
               </div>
 
-              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-gray-900">
+              <div className="bg-gray-950 p-4 rounded-lg transition-all duration-300 hover:bg-slate-950">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-blue-500 mb-2">
                   <Trophy size={20} />
                   <span className="font-semibold">Rank</span>
@@ -285,7 +288,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Submissions Section */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-white mb-6">
             Recent Submissions
@@ -340,7 +342,6 @@ const Profile = () => {
             </table>
           </div>
 
-          {/* Code View Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
               <div className="bg-gray-950 rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">

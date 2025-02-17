@@ -10,10 +10,11 @@ const Login = () => {
   const [error, setError] = useState(null);
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
+    window.location.href = `${
+      import.meta.env.VITE_BACKEND_URL
+    }/api/auth/google`;
   };
 
-  // Handle OAuth callback
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get("accessToken");
@@ -41,7 +42,6 @@ const Login = () => {
         const userData = await response.json();
         await login(accessToken, refreshToken, userData);
 
-        // Clear URL parameters
         window.history.replaceState(
           {},
           document.title,

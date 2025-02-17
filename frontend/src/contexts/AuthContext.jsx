@@ -21,13 +21,16 @@ export const AuthProvider = ({ children }) => {
         throw new Error("No refresh token found");
       }
 
-      const response = await fetch("http://localhost:5000/api/auth/refresh", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refreshToken }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Token refresh failed");
@@ -122,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetchWithToken(
-        "http://localhost:5000/api/auth/user"
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`
       );
 
       if (response.ok) {

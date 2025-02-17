@@ -27,7 +27,6 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // If not authenticated, redirect to login with the intended destination
   if (!user) {
     return <Navigate to="/login" state={{ from: window.location.pathname }} />;
   }
@@ -35,7 +34,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Handle OAuth callback component
 const OAuthCallback = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -57,7 +55,6 @@ const OAuthCallback = () => {
           if (response.ok) {
             const userData = await response.json();
             await login(token, userData);
-            // Navigate to the intended destination or default to dashboard
             const state = window.history.state;
             navigate(state?.from || "/solve");
           }
@@ -128,7 +125,6 @@ function App() {
             }
           />
 
-          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

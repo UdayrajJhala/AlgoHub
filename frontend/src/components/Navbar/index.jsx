@@ -27,7 +27,7 @@ const Navbar = () => {
 
       try {
         const response = await fetchWithToken(
-          "http://localhost:5000/api/user/profile"
+          `${import.meta.env.VITE_BACKEND_URL}/api/user/profile`
         );
 
         if (!response.ok) {

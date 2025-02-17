@@ -4,6 +4,8 @@ const { pool } = require("../config/database");
 
 const router = express.Router();
 
+const judge0url = process.env.JUDGE0_URL;
+
 router.get("/", verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
@@ -75,7 +77,7 @@ router.post("/run", verifyToken, async (req, res) => {
     console.log("🔹 Sending code to Judge0...");
 
     const judge0Response = await fetch(
-      "http://43.204.130.231:2358/submissions?base64_encoded=true",
+      `${judge0url}submissions?base64_encoded=true`,
       {
         method: "POST",
         headers: {
@@ -84,8 +86,8 @@ router.post("/run", verifyToken, async (req, res) => {
         },
         body: JSON.stringify({
           language_id: languageId,
-          source_code: Buffer.from(code).toString("base64"), // Encode code in base64
-          stdin: Buffer.from(input).toString("base64"), // Encode input in base64
+          source_code: Buffer.from(code).toString("base64"), 
+          stdin: Buffer.from(input).toString("base64"), 
         }),
       }
     );
@@ -100,7 +102,6 @@ router.post("/run", verifyToken, async (req, res) => {
       return res.status(500).json({ error: "Failed to get submission token" });
     }
 
-    // Fetch execution result from Judge0
     const token = judge0Data.token;
     console.log("🔹 Polling Judge0 for results... Token:", token);
 
@@ -109,9 +110,9 @@ router.post("/run", verifyToken, async (req, res) => {
 
     do {
       pollCount++;
-      await new Promise((res) => setTimeout(res, 1000)); // Wait 1 sec before polling
+      await new Promise((res) => setTimeout(res, 1000)); 
       const resultResponse = await fetch(
-        `http://43.204.130.231:2358/submissions/${token}?base64_encoded=true`,
+        `${judge0url}submissions/${token}?base64_encoded=true`,
         {
           method: "GET",
           headers: {
@@ -121,7 +122,7 @@ router.post("/run", verifyToken, async (req, res) => {
         }
       );
 
-      result = await resultResponse.clone().json(); // 🛠️ Clone before reading
+      result = await resultResponse.clone().json(); 
       console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
 
       // Decode output if it exists
@@ -134,6 +135,8 @@ router.post("/run", verifyToken, async (req, res) => {
 
       console.log(`✅ Poll ${pollCount}: Response from Judge0 -`, result);
 
+      
+
       // Check if status exists before accessing description
       if (!result || !result.status) {
         console.error("❌ Judge0 response is missing 'status':", result);
@@ -144,6 +147,14 @@ router.post("/run", verifyToken, async (req, res) => {
         `✅ Poll ${pollCount}: Status description -`,
         result.status.description
       );
+
+       if (result.status.description === "Compilation Error") {
+         console.error("❌ Compilation Error occurred");
+         return res.status(400).json({
+           error: "Compilation Error",
+           message: Buffer.from(result.compile_output, "base64").toString(),
+         });
+       }
     } while (result.status.description != "Accepted");
 
 
@@ -183,7 +194,6 @@ router.post("/submit", verifyToken, async (req, res) => {
     const user_id = req.user.id;
     console.log("🔹 Request Body:", { problem_id, language });
 
-    // Map language to Judge0 language_id
     const languageMap = { cpp: 54, java: 62 };
     const languageId = languageMap[language];
 
@@ -220,9 +230,8 @@ router.post("/submit", verifyToken, async (req, res) => {
         `🔹 Running test case ${i + 1}/${testCaseResults.rows.length}`
       );
 
-      // Submit to Judge0
       const judge0Response = await fetch(
-        "http://43.204.130.231:2358/submissions?base64_encoded=true",
+        `${judge0url}submissions?base64_encoded=true`,
         {
           method: "POST",
           headers: {
@@ -256,9 +265,9 @@ router.post("/submit", verifyToken, async (req, res) => {
 
       do {
         pollCount++;
-        await new Promise((res) => setTimeout(res, 500)); // 1.5 sec delay before polling
+        await new Promise((res) => setTimeout(res, 500)); 
         const resultResponse = await fetch(
-          `http://43.204.130.231:2358/submissions/${token}?base64_encoded=true`,
+          `${judge0url}submissions/${token}?base64_encoded=true`,
           {
             method: "GET",
             headers: {

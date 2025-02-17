@@ -5,6 +5,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { java } from "@codemirror/lang-java";
 import { dracula } from "@uiw/codemirror-theme-dracula";
+import CodeOutputDisplay from "./CodeOutputDisplay";
 
 function Problem() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ function Problem() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/problem/${id}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/problem/${id}`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -56,18 +57,24 @@ function Problem() {
     setMetrics(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/problem/run", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          problem_id: id,
-          code: editorContent,
-          language: language === "cpp" ? "cpp" : "java",
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/problem/run`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            problem_id: id,
+            code: editorContent,
+            language: language === "cpp" ? "cpp" : "java",
+          }),
+        }
+      );
+
+
+  
 
       if (!response.ok) throw new Error("Failed to run code");
 
@@ -100,18 +107,21 @@ function Problem() {
     setMetrics(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/problem/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          problem_id: id,
-          code: editorContent,
-          language: language === "cpp" ? "cpp" : "java",
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/problem/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            problem_id: id,
+            code: editorContent,
+            language: language === "cpp" ? "cpp" : "java",
+          }),
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to submit code");
 
@@ -154,7 +164,6 @@ function Problem() {
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100 p-4 pt-20">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left Panel */}
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">{problemData.title}</h1>
@@ -208,7 +217,6 @@ function Problem() {
           </div>
         </div>
 
-        {/* Right Panel */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <select
@@ -280,9 +288,8 @@ function Problem() {
             </div>
           )}
 
-          <div className="bg-slate-800 rounded-lg p-4 h-[200px] overflow-auto border border-slate-700">
-            <h3 className="font-semibold mb-2">Output:</h3>
-            <pre className="text-gray-300 whitespace-pre-line">{output}</pre>
+          <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+            <CodeOutputDisplay output={output} />
           </div>
         </div>
       </div>

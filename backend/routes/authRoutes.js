@@ -3,7 +3,7 @@ const passport = require("../config/passport");
 const { createTokens } = require("../utils/jwt");
 const { verifyToken } = require("../middleware/auth");
 const { pool } = require("../config/database");
-const jwt = require("jsonwebtoken"); // Add this import
+const jwt = require("jsonwebtoken"); 
 
 const router = express.Router();
 
@@ -35,7 +35,6 @@ router.get(
   }
 );
 
-// Move this route back to auth routes since frontend expects it here
 router.get("/user", verifyToken, async (req, res) => {
   try {
     const user = await pool.query("SELECT * FROM users WHERE id = $1", [
