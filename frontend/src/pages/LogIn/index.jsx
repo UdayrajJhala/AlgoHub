@@ -4,6 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
+  //
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
