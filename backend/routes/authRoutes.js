@@ -3,7 +3,7 @@ const passport = require("../config/passport");
 const { createTokens } = require("../utils/jwt");
 const { verifyToken } = require("../middleware/auth");
 const { pool } = require("../config/database");
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -19,17 +19,11 @@ router.get(
     try {
       const tokens = createTokens(req.user);
       res.redirect(
-        `${
-          process.env.CLIENT_URL || "http://localhost:5173"
-        }/login?accessToken=${tokens.accessToken}&refreshToken=${
-          tokens.refreshToken
-        }`
+        `${process.env.CLIENT_URL}/login?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
       );
     } catch (error) {
       res.redirect(
-        `${
-          process.env.CLIENT_URL || "http://localhost:5173"
-        }/login?error=authentication_failed`
+        `${process.env.CLIENT_URL}/login?error=authentication_failed`
       );
     }
   }
