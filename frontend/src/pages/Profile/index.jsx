@@ -27,7 +27,7 @@ const Profile = () => {
     total_submissions: 0,
     correct_submissions: 0,
     accuracy: 0,
-    rank: 0,
+    rank: '0',
   });
   const [submissions, setSubmissions] = useState([]);
   const [selectedCode, setSelectedCode] = useState(null);
