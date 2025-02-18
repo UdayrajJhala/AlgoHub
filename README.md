@@ -1,6 +1,6 @@
 # AlgoHub
 
-AlgoHub is a platform for practicing Data Structures and Algorithms (DSA). It allows users to solve problems, execute code in C++ and Java, and visualize algorithms like DFS, BFS, and Dijkstra’s. The platform provides real-time code execution through a self-hosted Judge0 instance on AWS EC2 and tracks user progress.
+AlgoHub is a platform for practicing Data Structures and Algorithms (DSA). It allows users to solve problems, execute code in C++ and Java, and visualize algorithms like sorting, DFS, BFS, and Dijkstra’s. The platform provides real-time code execution through a self-hosted Judge0 instance on AWS EC2 and tracks user progress.
 
 ## Live at
 https://alg0hub.vercel.app
