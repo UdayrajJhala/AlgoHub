@@ -16,16 +16,16 @@ https://alg0hub.vercel.app
 <div align="center">
   <table>
     <tr>
-      <td><img src="Screenshots/homepage.png" alt="Homepage" width="500"></td>
-      <td><img src="Screenshots/problem-set.png" alt="Problem Set" width="500"></td>
+      <td><img src="Screenshots/homepage.png" alt="Homepage" width="700"></td>
+      <td><img src="Screenshots/problem-set.png" alt="Problem Set" width="700"></td>
     </tr>
     <tr>
-      <td><img src="Screenshots/code-execution.png" alt="Code Execution" width="500"></td>
-      <td><img src="Screenshots/graph.png" alt="Graph Visualization" width="500"></td>
+      <td><img src="Screenshots/code-execution.png" alt="Code Execution" width="700"></td>
+      <td><img src="Screenshots/graph.png" alt="Graph Visualization" width="700"></td>
     </tr>
     <tr>
-      <td><img src="Screenshots/sorting.png" alt="Sorting" width="500"></td>
-      <td><img src="Screenshots/leaderboard.png" alt="Leaderboard" width="500"></td>
+      <td><img src="Screenshots/sorting.png" alt="Sorting" width="700"></td>
+      <td><img src="Screenshots/leaderboard.png" alt="Leaderboard" width="700"></td>
     </tr>
 
   </table>
