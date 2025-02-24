@@ -17,7 +17,17 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [imageURL, setImageURL] = useState(null);
   const [imageError, setImageError] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { isAuthenticated, fetchWithToken } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchProfilePic = async () => {
@@ -58,7 +68,7 @@ const Navbar = () => {
     if (imageError || !imageURL) {
       return (
         <div
-          className={`${className} bg-slate-700 rounded-full flex items-center justify-center`}
+          className={`${className} bg-slate-700 rounded-full flex items-center justify-center transition-all hover:ring-2 hover:ring-blue-400`}
         >
           <User className="text-slate-300" size={24} />
         </div>
@@ -69,7 +79,7 @@ const Navbar = () => {
       <img
         src={imageURL}
         alt="Profile"
-        className={`${className} rounded-full object-cover`}
+        className={`${className} rounded-full object-cover transition-all hover:ring-2 hover:ring-blue-400`}
         onError={() => setImageError(true)}
       />
     );
@@ -88,8 +98,10 @@ const Navbar = () => {
       <NavLink
         to="/login"
         className={({ isActive }) =>
-          `flex items-center space-x-1 transition-colors ${
-            isActive ? "text-blue-500" : "text-slate-300 hover:text-white"
+          `flex items-center space-x-1 px-4 py-2 rounded-lg transition-all ${
+            isActive
+              ? "text-white bg-blue-500/20 border border-blue-500/30"
+              : "text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent"
           }`
         }
       >
@@ -124,31 +136,42 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 z-50">
+    <nav
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-slate-900/95 backdrop-blur-md shadow-lg"
+          : "bg-slate-900/80 backdrop-blur-sm"
+      } border-b border-slate-800`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <NavLink
               to="/"
-              className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
+              className="flex items-center space-x-2 text-2xl font-bold"
             >
-              <div className="flex">
-                <img src={logo} alt="" />
-                Algohub
+              <div className="relative group">
+                <div className="absolute -inset-1 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+                <div className="relative">
+                  <img src={logo} alt="AlgoHub Logo" className="h-8 w-auto" />
+                </div>
               </div>
+              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                Algohub
+              </span>
             </NavLink>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item, index) => (
               <NavLink
                 key={index}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-1 transition-colors ${
+                  `flex items-center space-x-1 px-3 py-2 rounded-lg transition-all ${
                     isActive
-                      ? "text-blue-400"
-                      : "text-slate-300 hover:text-white"
+                      ? "text-blue-400 bg-blue-500/10"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800/50"
                   }`
                 }
               >
@@ -163,7 +186,7 @@ const Navbar = () => {
             {renderMobileAuthSection()}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-slate-300 hover:text-white p-2"
+              className="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-slate-800/70 transition-colors"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -177,16 +200,16 @@ const Navbar = () => {
               : "max-h-0 opacity-0 overflow-hidden"
           }`}
         >
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-2">
             {navItems.map((item, index) => (
               <NavLink
                 key={index}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-2 px-2 py-2 rounded-lg transition-colors ${
+                  `flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? "text-blue-500"
-                      : "text-slate-300 hover:text-white"
+                      ? "text-blue-400 bg-blue-500/10"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800/50"
                   }`
                 }
                 onClick={() => setIsOpen(false)}
