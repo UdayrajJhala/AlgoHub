@@ -350,11 +350,7 @@ const Profile = () => {
                   {submissions.map((submission, index) => (
                     <tr
                       key={submission.submission_id}
-                      className={`border-t border-slate-700 hover:bg-slate-800 hover:bg-opacity-30 transition-colors ${
-                        index % 2 === 0
-                          ? "bg-slate-900"
-                          : "bg-slate-800 bg-opacity-20"
-                      }`}
+                      className={`border-t border-slate-700 hover:bg-slate-800 hover:bg-opacity-30 transition-colors bg-slate-800 bg-opacity-20`}
                     >
                       <td className="p-4 text-white font-medium">
                         {submission.title}
@@ -381,7 +377,7 @@ const Profile = () => {
                             setSelectedCode(submission.code);
                             setShowModal(true);
                           }}
-                          className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-md hover:shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all"
+                          className="flex cursor-pointer items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-md hover:shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all"
                         >
                           <Code size={16} />
                           View
