@@ -54,7 +54,7 @@ const LandingPage = () => {
           
             <div className="flex items-center justify-center space-x-5">
               <Link to="/solve">
-                <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all">
+                <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all">
                   Solve Problems
                 </button>
               </Link>
