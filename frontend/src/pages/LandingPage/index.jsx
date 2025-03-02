@@ -31,7 +31,6 @@ const LandingPage = () => {
       <div className="absolute top-60 left-20 w-64 h-64 bg-cyan-500 rounded-full opacity-10 blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Hero Section */}
         <div className="text-center space-y-6 mt-24 mb-10">
           <div className="relative">
@@ -51,17 +50,19 @@ const LandingPage = () => {
           </p>
 
           <div className="relative">
-          
             <div className="flex items-center justify-center space-x-5">
               <Link to="/solve">
-                <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all">
+                <button className="h-15 px-8 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all">
                   Solve Problems
                 </button>
               </Link>
 
               <Link to="/visualize">
-                <button className="px-6 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-medium hover:bg-slate-800/80 hover:shadow-lg hover:shadow-slate-800/10 transition-all">
-                  Visualize Algorithms
+                <button className="h-15 px-6 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-medium hover:bg-slate-800/80 hover:shadow-lg hover:shadow-slate-800/10 transition-all">
+                  <div className="flex flex-col items-center">
+                    <span>Visualize Algorithms</span>
+                    <span>(no sign-in required)</span>
+                  </div>
                 </button>
               </Link>
             </div>
@@ -83,7 +84,6 @@ const LandingPage = () => {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );
