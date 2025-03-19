@@ -35,7 +35,7 @@ https://alg0hub.vercel.app
 
 - **Frontend:** React (Hosted on Vercel)
 - **Backend:** Node.js, Express (Hosted on Render)
-- **Database:** PostgreSQL (Hosted on Render)
+- **Database:** PostgreSQL (Hosted on Neon.tech)
 - **Code Execution Engine:** Self-hosted Judge0 on AWS EC2 using Docker
 
 ## Installation
